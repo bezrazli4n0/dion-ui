@@ -1,6 +1,8 @@
 package dion
 
-import "github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/user32"
+import (
+	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/user32"
+)
 
 // Init инициализирует библиотеку
 func Init() {

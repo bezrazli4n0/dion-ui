@@ -4,10 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi"
-	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/dwmapi"
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/kernel32"
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/user32"
-	"log"
 	"syscall"
 	"unsafe"
 )
@@ -34,6 +32,8 @@ type Window interface {
 
 	GetHandle() user32.HWND
 	GetTitle() string
+	GetSize() (width, height int)
+	GetPos() (x, y int)
 
 	AttachCallback(callbackType WindowCallbackType, callback interface{})
 	DetachCallback(callbackType WindowCallbackType)
@@ -47,6 +47,7 @@ type Window interface {
 type window struct {
 	hWnd         user32.HWND
 	title, class string
+	x, y, width, height int
 
 	callbacks map[WindowCallbackType]interface{}
 }
@@ -60,11 +61,15 @@ func (w *window) SetTitle(title string) {
 
 // SetPos устанавливает позицию окна
 func (w *window) SetPos(x, y int) {
+	w.x = x
+	w.y = y
 	user32.SetWindowPos(w.hWnd, user32.HWND_TOP, x, y, 0, 0, user32.SWP_NOOWNERZORDER | user32.SWP_NOZORDER | user32.SWP_NOSIZE)
 }
 
 // SetSize устанавливает размеры окна
 func (w *window) SetSize(width, height int) {
+	w.width = width
+	w.height = height
 	user32.SetWindowPos(w.hWnd, user32.HWND_TOP, 0, 0, width, height, user32.SWP_NOOWNERZORDER | user32.SWP_NOZORDER | user32.SWP_NOMOVE)
 }
 
@@ -199,6 +204,16 @@ func (w *window) Show() {
 	user32.ShowWindow(w.hWnd, user32.SW_SHOW)
 }
 
+// GetPos возвращает позицию окна
+func (w *window) GetPos() (int, int) {
+	return w.x, w.y
+}
+
+// GetSize возвращает размер окна
+func (w *window) GetSize() (width, height int) {
+	return w.width, w.height
+}
+
 // NewWindow возвращает новый экземпляр окна
 func NewWindow(title string, x, y, width, height int) (Window, error) {
 	wc := user32.WNDCLASSEXW{
@@ -213,6 +228,10 @@ func NewWindow(title string, x, y, width, height int) (Window, error) {
 
 	wnd := &window{title: title, class: fmt.Sprintf("%s_dionUI", title)}
 	wnd.callbacks = make(map[WindowCallbackType]interface{})
+	wnd.x = x
+	wnd.y = y
+	wnd.width = width
+	wnd.height = height
 
 	winRect := &user32.RECT{Right: int32(width), Bottom: int32(height)}
 	user32.AdjustWindowRect(winRect, user32.WS_OVERLAPPEDWINDOW, false)
@@ -225,15 +244,6 @@ func NewWindow(title string, x, y, width, height int) (Window, error) {
 	}
 
 	wnd.hWnd = hWnd
-
-	windowRect := &user32.RECT{}
-	frameRect := &user32.RECT{}
-	user32.GetWindowRect(wnd.hWnd, windowRect)
-
-	ret := dwmapi.DwmGetWindowAttribute(wnd.hWnd, dwmapi.DWMWA_EXTENDED_FRAME_BOUNDS, winapi.PVOID(unsafe.Pointer(frameRect)), winapi.DWORD(unsafe.Sizeof(*frameRect)))
-	log.Println(ret)
-	log.Println(windowRect)
-	log.Println(frameRect)
 
 	user32.UpdateWindow(hWnd)
 	user32.ShowWindow(hWnd, user32.SW_SHOW)
