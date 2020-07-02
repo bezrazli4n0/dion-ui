@@ -26,6 +26,11 @@ var (
 	pGetWindowRect = user32DLL.NewProc("GetWindowRect")
 	pSetWindowPos = user32DLL.NewProc("SetWindowPos")
 	pAdjustWindowRect = user32DLL.NewProc("AdjustWindowRect")
+	pBeginPaint = user32DLL.NewProc("BeginPaint")
+	pEndPaint = user32DLL.NewProc("EndPaint")
+	pInvalidateRect = user32DLL.NewProc("InvalidateRect")
+	pPeekMessage = user32DLL.NewProc("PeekMessageW")
+	pDestroyWindow = user32DLL.NewProc("DestroyWindow")
 )
 
 // RegisterClassEx регистрирует окно в системе
@@ -172,6 +177,17 @@ func UnregisterClass(lpClassName string, hInstance HINSTANCE) bool {
 	return true
 }
 
+// BeginPaint подготавливает окно для рисования
+func BeginPaint(hWnd HWND, lpPaint *PAINTSTRUCT) HDC {
+	ret, _, _ := pBeginPaint.Call(uintptr(hWnd), uintptr(unsafe.Pointer(lpPaint)))
+	return HDC(ret)
+}
+
+// EndPaint сообщает окну о прекращении рисования
+func EndPaint(hWnd HWND, lpPaint *PAINTSTRUCT) {
+	pEndPaint.Call(uintptr(hWnd), uintptr(unsafe.Pointer(lpPaint)))
+}
+
 // AdjustWindowRect вычисляет необходимый размер окна
 func AdjustWindowRect(lpRect *RECT, dwStyle winapi.DWORD, bMenu bool) bool {
 	_bMenu := winapi.BOOL(0)
@@ -180,6 +196,43 @@ func AdjustWindowRect(lpRect *RECT, dwStyle winapi.DWORD, bMenu bool) bool {
 	}
 
 	ret, _, _ := pAdjustWindowRect.Call(uintptr(unsafe.Pointer(lpRect)), uintptr(dwStyle), uintptr(_bMenu))
+
+	if ret == 0 {
+		return false
+	}
+
+	return true
+}
+
+// InvalidateRect обновляет указанный регион
+func InvalidateRect(hWnd HWND, lpRect *RECT, bErase bool) bool {
+	_bErase := winapi.BOOL(0)
+	if bErase {
+		_bErase = winapi.BOOL(1)
+	}
+	ret, _, _ := pInvalidateRect.Call(uintptr(hWnd), uintptr(unsafe.Pointer(lpRect)), uintptr(_bErase))
+
+	if ret == 0 {
+		return false
+	}
+
+	return true
+}
+
+// DestroyWindow уничтожает окно
+func DestroyWindow(hWnd HWND) bool {
+	ret, _, _ := pDestroyWindow.Call(uintptr(hWnd))
+
+	if ret == 0 {
+		return  false
+	}
+
+	return true
+}
+
+// PeekMessage обрабатывает входящие сообщения окну
+func PeekMessage(lpMsg *MSG, hWnd HWND, wMsgFilterMin, wMsgFilterMax, wRemoveMsg uint32) bool {
+	ret, _, _ := pPeekMessage.Call(uintptr(unsafe.Pointer(lpMsg)), uintptr(hWnd), uintptr(wMsgFilterMin), uintptr(wMsgFilterMax), uintptr(wRemoveMsg))
 
 	if ret == 0 {
 		return false

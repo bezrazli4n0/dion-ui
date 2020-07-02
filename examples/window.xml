@@ -1,6 +1,12 @@
 <Window
     title="DionUI"
-    width="640"
-    height="480"
-    autoclose="true">
+    width="400"
+    height="220"
+    x="0"
+    y="0"
+    autoclose="true"
+    backgroundColor="100, 37, 50"
+    onLMouseUp="leftCallback"
+    onRMouseUp="rightCallback"
+    onResize="resizeCallback">
 </Window>

@@ -15,7 +15,7 @@ type WPARAM uintptr
 type LRESULT uintptr
 
 // HRESULT указатель 4 байта
-type HRESULT uintptr
+type HRESULT int32
 
 // Handle указатель на объект ядра
 type Handle syscall.Handle
@@ -30,4 +30,7 @@ type LPVOID uintptr
 type PVOID uintptr
 
 // BOOL 4 байта
-type BOOL int
+type BOOL int32
+
+// BYTE 1 байт
+type BYTE byte

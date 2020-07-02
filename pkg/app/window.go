@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi"
+	d2d1 "github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/direct2d"
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/kernel32"
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/user32"
 	"syscall"
@@ -22,6 +23,8 @@ const (
 	OnMouseMove
 
 	OnClose
+
+	OnResize
 )
 
 // Window определяет внешний интерфейс взаимодействия с окном
@@ -38,6 +41,8 @@ type Window interface {
 	AttachCallback(callbackType WindowCallbackType, callback interface{})
 	DetachCallback(callbackType WindowCallbackType)
 
+	SetBackgroundColor(r, g, b, a byte)
+
 	Close()
 	Hide()
 	Show()
@@ -48,9 +53,15 @@ type window struct {
 	hWnd         user32.HWND
 	title, class string
 	x, y, width, height int
+	pRT *d2d1.ID2D1HwndRenderTarget
+	backgroundColor d2d1.COLOR_F
+	isClosed bool
 
 	callbacks map[WindowCallbackType]interface{}
 }
+
+// dionWindows содержит все окна
+var dionWindows map[*window]interface{}
 
 // SetTitle устанавливает заголовок окна
 func (w *window) SetTitle(title string) {
@@ -63,6 +74,10 @@ func (w *window) SetTitle(title string) {
 func (w *window) SetPos(x, y int) {
 	w.x = x
 	w.y = y
+
+	winRect := w.getCorrectedBox()
+	x += int(winRect.Left)
+
 	user32.SetWindowPos(w.hWnd, user32.HWND_TOP, x, y, 0, 0, user32.SWP_NOOWNERZORDER | user32.SWP_NOZORDER | user32.SWP_NOSIZE)
 }
 
@@ -70,6 +85,11 @@ func (w *window) SetPos(x, y int) {
 func (w *window) SetSize(width, height int) {
 	w.width = width
 	w.height = height
+
+	winRect := w.getCorrectedBox()
+	width = int(winRect.Right - winRect.Left)
+	height = int(winRect.Bottom - winRect.Top)
+
 	user32.SetWindowPos(w.hWnd, user32.HWND_TOP, 0, 0, width, height, user32.SWP_NOOWNERZORDER | user32.SWP_NOZORDER | user32.SWP_NOMOVE)
 }
 
@@ -116,6 +136,14 @@ func windowProc(hWnd user32.HWND, uMsg uint32, wParam winapi.WPARAM, lParam wina
 // windowProc процедура обработки сообщений окна
 func (w *window) windowProc(hWnd user32.HWND, uMsg uint32, wParam winapi.WPARAM, lParam winapi.LPARAM) winapi.LRESULT {
 	switch uMsg {
+	case user32.WM_DISPLAYCHANGE:
+	case user32.WM_PAINT:
+		ps := &user32.PAINTSTRUCT{}
+		user32.BeginPaint(hWnd, ps)
+		w.render()
+		user32.EndPaint(hWnd, ps)
+		return 0
+
 	case user32.WM_LBUTTONUP:
 		w.onLButtonUp(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
 		return 0
@@ -136,10 +164,18 @@ func (w *window) windowProc(hWnd user32.HWND, uMsg uint32, wParam winapi.WPARAM,
 		w.onMouseMove(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
 		return 0
 
+	case user32.WM_SIZE:
+		w.onResize(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
+		return 0
+
 	case user32.WM_DESTROY:
 		if callback, ok := w.callbacks[OnClose]; ok {
 			callback.(func())()
 		}
+
+		w.isClosed = true
+		delete(dionWindows, w)
+
 		return 0
 	}
 	return user32.DefWindowProc(hWnd, uMsg, wParam, lParam)
@@ -157,6 +193,11 @@ func (w *window) onLButtonUp(x, y int) {
 	if callback, ok := w.callbacks[OnLMouseButtonUp]; ok {
 		callback.(func(x, y int))(x, y)
 	}
+}
+
+// SetBackgroundColor устанавливает цвет окна
+func (w *window) SetBackgroundColor(r, g, b, a byte) {
+	w.backgroundColor = d2d1.COLOR_F{R: float32(r) / 255.0, G: float32(g) / 255.0, B: float32(b) / 255.0, A: float32(a) / 255.0}
 }
 
 // onRButtonDown обрабатывает собитие нажатия правой кнопкой мыши
@@ -180,6 +221,17 @@ func (w *window) onMouseMove(x, y int) {
 	}
 }
 
+// onResize вызывается при изменении размеров окна
+func (w *window) onResize(width, height int) {
+	if w.pRT != nil {
+		w.pRT.Resize(d2d1.SIZE_U{uint32(width), uint32(height)})
+	}
+
+	if callback, ok := w.callbacks[OnResize]; ok {
+		callback.(func(width, height int))(width, height)
+	}
+}
+
 // DetachCallback удаляет функцию обратного вызова с события
 func (w *window) DetachCallback(callbackType WindowCallbackType) {
 	_, ok := w.callbacks[callbackType]
@@ -190,8 +242,11 @@ func (w *window) DetachCallback(callbackType WindowCallbackType) {
 
 // Close функция закрывает окно
 func (w *window) Close() {
-	user32.PostQuitMessage(0)
+	user32.DestroyWindow(w.hWnd)
 	user32.UnregisterClass(w.class, user32.HINSTANCE(kernel32.GetModuleHandle()))
+	if w.pRT != nil {
+		w.pRT.Release()
+	}
 }
 
 // Hide скрывает окно
@@ -209,9 +264,23 @@ func (w *window) GetPos() (int, int) {
 	return w.x, w.y
 }
 
+// render отрисовывает окно
+func (w *window) render() {
+	w.pRT.BeginDraw()
+	w.pRT.Clear(w.backgroundColor)
+	w.pRT.EndDraw()
+}
+
 // GetSize возвращает размер окна
 func (w *window) GetSize() (width, height int) {
 	return w.width, w.height
+}
+
+// getCorrectedBox возвращает размеры действительного прямоугольника окна
+func (w *window) getCorrectedBox() user32.RECT {
+	winRect := user32.RECT{Right: int32(w.width), Bottom: int32(w.height)}
+	user32.AdjustWindowRect(&winRect, user32.WS_OVERLAPPEDWINDOW, false)
+	return winRect
 }
 
 // NewWindow возвращает новый экземпляр окна
@@ -232,9 +301,11 @@ func NewWindow(title string, x, y, width, height int) (Window, error) {
 	wnd.y = y
 	wnd.width = width
 	wnd.height = height
+	wnd.backgroundColor = d2d1.COLOR_F{1.0, 1.0, 1.0, 1.0}
+	wnd.isClosed = false
 
-	winRect := &user32.RECT{Right: int32(width), Bottom: int32(height)}
-	user32.AdjustWindowRect(winRect, user32.WS_OVERLAPPEDWINDOW, false)
+	winRect := wnd.getCorrectedBox()
+	x += int(winRect.Left)
 	width = int(winRect.Right - winRect.Left)
 	height = int(winRect.Bottom - winRect.Top)
 
@@ -244,6 +315,10 @@ func NewWindow(title string, x, y, width, height int) (Window, error) {
 	}
 
 	wnd.hWnd = hWnd
+
+	getD2D1Factory().CreateHwndRenderTarget(d2d1.RenderTargetProperties(), d2d1.HwndRenderTargetProperties(hWnd, width, height), &wnd.pRT)
+
+	dionWindows[wnd] = struct{}{}
 
 	user32.UpdateWindow(hWnd)
 	user32.ShowWindow(hWnd, user32.SW_SHOW)

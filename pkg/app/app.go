@@ -6,16 +6,38 @@ import (
 
 // Init инициализирует библиотеку
 func Init() {
+	initGraphics()
+	appRunning = true
+	dionWindows = make(map[*window]interface{})
+}
+
+var appRunning bool = false
+
+// Exit выходит из приложения
+func Exit() {
+	user32.PostQuitMessage(0)
+	appRunning = false
 }
 
 // Run запускает цикл обработки сообщений
 func Run() int {
-	uMsg := user32.MSG{}
+	msg := user32.MSG{}
 
-	for user32.GetMessage(&uMsg, 0, 0, 0) {
-		user32.TranslateMessage(&uMsg)
-		user32.DispatchMessage(&uMsg)
+	for appRunning {
+		if user32.PeekMessage(&msg, 0, 0, 0, user32.PM_REMOVE) {
+			user32.TranslateMessage(&msg)
+			user32.DispatchMessage(&msg)
+		} else {
+			for w, _ := range dionWindows {
+				w.render()
+			}
+		}
 	}
 
-	return int(uMsg.WParam)
+	for w, _ := range dionWindows {
+		w.Close()
+	}
+
+	freeGraphics()
+	return int(msg.WParam)
 }

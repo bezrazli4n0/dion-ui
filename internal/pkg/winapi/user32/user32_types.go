@@ -23,6 +23,9 @@ type HBRUSH syscall.Handle
 // HMENU дескриптор меню объекта
 type HMENU syscall.Handle
 
+// HDC дескриптор девайса
+type HDC syscall.Handle
+
 const (
 	CS_HREDRAW = 0x0002
 	CS_VREDRAW = 0x0001
@@ -53,6 +56,9 @@ const (
 	WM_RBUTTONUP = 0x0205
 	WM_DESTROY = 0x0002
 	WM_MOUSEMOVE = 0x0200
+	WM_DISPLAYCHANGE = 0x007E
+	WM_PAINT = 0x000F
+	WM_SIZE = 0x0005
 
 	COLOR_WINDOW = 5
 
@@ -78,6 +84,8 @@ const (
 	SWP_NOSIZE = 0x0001
 	SWP_NOZORDER = 0x0004
 	SWP_SHOWWINDOW = 0x0040
+
+	PM_REMOVE = 0x0001
 )
 
 type WNDCLASSEXW struct {
@@ -115,8 +123,8 @@ type CREATESTRUCTW struct {
 	HInstance HINSTANCE
 	HMenu HMENU
 	HwndParent HWND
-	Cy, Cx, Y, X int
-	Style int
+	Cy, Cx, Y, X int32
+	Style int32
 	LpszName *uint16
 	LpszClass *uint16
 	DwExStyle winapi.DWORD
@@ -124,4 +132,13 @@ type CREATESTRUCTW struct {
 
 type RECT struct {
 	Left, Top, Right, Bottom int32
+}
+
+type PAINTSTRUCT struct {
+	Hdc HDC
+	FErase winapi.BOOL
+	RcPaint RECT
+	FRestore winapi.BOOL
+	FIncUpdate winapi.BOOL
+	RgbReserved [32]winapi.BYTE
 }

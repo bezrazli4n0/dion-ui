@@ -1,0 +1,58 @@
+package d2d1
+
+// ID2D1RenderTarget предоставляет объект, который обрабатывает команды рисования
+type ID2D1RenderTarget struct {
+	CreateBitmap uintptr
+	CreateBitmapFromWicBitmap uintptr
+	CreateSharedBitmap uintptr
+	CreateBitmapBrush uintptr
+	CreateSolidColorBrush uintptr
+	CreateGradientStopCollection uintptr
+	CreateLinearGradientBrush uintptr
+	CreateRadialGradientBrush uintptr
+	CreateCompatibleRenderTarget uintptr
+	CreateLayer uintptr
+	CreateMesh uintptr
+	DrawLine uintptr
+	DrawRectangle uintptr
+	FillRectangle uintptr
+	DrawRoundedRectangle uintptr
+	FillRoundedRectangle uintptr
+	DrawEllipse uintptr
+	FillEllipse uintptr
+	DrawGeometry uintptr
+	FillGeometry uintptr
+	FillMesh uintptr
+	FillOpacityMask uintptr
+	DrawBitmap uintptr
+	DrawText uintptr
+	DrawTextLayout uintptr
+	DrawGlyphRun uintptr
+	SetTransform uintptr
+	GetTransform uintptr
+	SetAntialiasMode uintptr
+	GetAntialiasMode uintptr
+	SetTextAntialiasMode uintptr
+	GetTextAntialiasMode uintptr
+	SetTextRenderingParams uintptr
+	GetTextRenderingParams uintptr
+	SetTags uintptr
+	GetTags uintptr
+	PushLayer uintptr
+	PopLayer uintptr
+	Flush uintptr
+	SaveDrawingState uintptr
+	RestoreDrawingState uintptr
+	PushAxisAlignedClip uintptr
+	PopAxisAlignedClip uintptr
+	Clear uintptr
+	BeginDraw uintptr
+	EndDraw uintptr
+	GetPixelFormat uintptr
+	SetDpi uintptr
+	GetDpi uintptr
+	GetSize uintptr
+	GetPixelSize uintptr
+	GetMaximumBitmapSize uintptr
+	IsSupported uintptr
+}
