@@ -1,6 +1,6 @@
 package dion
 
-import d2d1 "github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/direct2d"
+import "github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/d2d1"
 
 var pD2D1Factory *d2d1.ID2D1Factory
 

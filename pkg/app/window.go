@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi"
-	d2d1 "github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/direct2d"
+	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/d2d1"
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/kernel32"
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/user32"
 	"syscall"
