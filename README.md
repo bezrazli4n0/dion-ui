@@ -35,10 +35,7 @@ window.xml:
     x="0"
     y="0"
     autoclose="true"
-    backgroundColor="255, 255, 255"
-    onLMouseUp="leftCallback"
-    onRMouseUp="rightCallback"
-    onResize="resizeCallback">
+    backgroundColor="255, 255, 255">
     <Canvas>
         <FillRectangle x="0" y="0" width="100%" height="50%" color="255, 0, 0"/>
     </Canvas>
