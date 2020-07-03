@@ -10,7 +10,6 @@
     onRMouseUp="rightCallback"
     onResize="resizeCallback">
     <Canvas>
-        <FillRectangle x="0" y="0" width="100%" height="15%" color="30, 30, 30"/>
-        <FillRectangle x="0" y="0" width="10%" height="100%" color="0, 0, 37"/>
+        <FillRectangle x="0" y="0" width="100%" height="50%" color="255, 0, 0"/>
     </Canvas>
 </Window>
