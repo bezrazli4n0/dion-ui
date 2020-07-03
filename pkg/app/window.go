@@ -309,7 +309,7 @@ func NewWindow(title string, x, y, width, height int) (Window, error) {
 	width = int(winRect.Right - winRect.Left)
 	height = int(winRect.Bottom - winRect.Top)
 
-	hWnd := user32.CreateWindowEx(0, syscall.StringToUTF16Ptr(fmt.Sprintf("%s_dionUI", title)), syscall.StringToUTF16Ptr(title), user32.WS_OVERLAPPEDWINDOW, int32(x), int32(y), int32(width), int32(height), 0, 0, wc.HInstance, winapi.LPVOID(unsafe.Pointer(wnd)))
+	hWnd := user32.CreateWindowEx(0, wnd.class, title, user32.WS_OVERLAPPEDWINDOW, int32(x), int32(y), int32(width), int32(height), 0, 0, wc.HInstance, winapi.LPVOID(unsafe.Pointer(wnd)))
 	if hWnd == 0 {
 		return nil, errors.New(fmt.Sprintf("dion: window handle is empty ~> %x", kernel32.GetLastError()))
 	}
