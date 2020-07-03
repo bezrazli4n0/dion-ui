@@ -113,7 +113,12 @@ func PostQuitMessage(nExitCode int) {
 
 // SetWindowText устанавливает текст окна
 func SetWindowText(hWnd HWND, lpString string) bool {
-	ret, _, _ := pSetWindowText.Call(uintptr(hWnd), uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(lpString))))
+	_lpString, err := syscall.UTF16FromString(lpString)
+	if err != nil {
+		return false
+	}
+
+	ret, _, _ := pSetWindowText.Call(uintptr(hWnd), uintptr(unsafe.Pointer(&_lpString[0])))
 
 	if ret == 0 {
 		return false
@@ -168,7 +173,12 @@ func SetWindowPos(hWnd, hWndInsertAfter HWND, x, y, cx, cy int, uFlags uint32) b
 
 // UnregisterClass высвобождает память окна
 func UnregisterClass(lpClassName string, hInstance HINSTANCE) bool {
-	ret, _, _ := pUnregisterClass.Call(uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(lpClassName))), uintptr(hInstance))
+	_lpClassName, err := syscall.UTF16FromString(lpClassName)
+	if err != nil {
+		return false
+	}
+
+	ret, _, _ := pUnregisterClass.Call(uintptr(unsafe.Pointer(&_lpClassName[0])), uintptr(hInstance))
 
 	if ret == 0 {
 		return false
@@ -242,11 +252,21 @@ func PeekMessage(lpMsg *MSG, hWnd HWND, wMsgFilterMin, wMsgFilterMax, wRemoveMsg
 }
 
 // CreateWindowEx создает окно
-func CreateWindowEx(dwExStyle winapi.DWORD, lpClassName, lpWindowName *uint16, dwStyle winapi.DWORD, X, Y, nWidth, nHeight int32, hWndParent HWND, hMenu HMENU, hInstance HINSTANCE, lpParam winapi.LPVOID) HWND {
+func CreateWindowEx(dwExStyle winapi.DWORD, lpClassName, lpWindowName string, dwStyle winapi.DWORD, X, Y, nWidth, nHeight int32, hWndParent HWND, hMenu HMENU, hInstance HINSTANCE, lpParam winapi.LPVOID) HWND {
+	_lpClassName, err := syscall.UTF16FromString(lpClassName)
+	if err != nil {
+		return 0
+	}
+
+	_lpWindowName, err := syscall.UTF16FromString(lpWindowName)
+	if err != nil {
+		return 0
+	}
+
 	ret, _, _ := pCreateWindowEx.Call(
 		uintptr(dwExStyle),
-		uintptr(unsafe.Pointer(lpClassName)),
-		uintptr(unsafe.Pointer(lpWindowName)),
+		uintptr(unsafe.Pointer(&_lpClassName[0])),
+		uintptr(unsafe.Pointer(&_lpWindowName[0])),
 		uintptr(dwStyle),
 		uintptr(X),
 		uintptr(Y),
