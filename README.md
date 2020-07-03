@@ -44,7 +44,7 @@ window.xml:
     </Canvas>
 </Window>
 ```
-window.go
+window.go:
 ```go
 package main
 
