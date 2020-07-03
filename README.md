@@ -62,6 +62,6 @@ func main() {
 }
 ```
 
-<p align="center"><img src="examples/load_from_file/example.PNG" /></p>
+<p align="center"><img src="examples/load_from_file/example.png" /></p>
 
 * Больше примеров можно найти в папке [examples](examples)
