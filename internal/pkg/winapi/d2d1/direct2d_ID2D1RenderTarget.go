@@ -3,6 +3,7 @@ package d2d1
 import (
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi"
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/dwrite"
+	"math"
 	"syscall"
 	"unsafe"
 )
@@ -107,6 +108,11 @@ func (obj *ID2D1RenderTarget) Clear(clearColor COLOR_F) {
 // FillRectangle https://docs.microsoft.com/en-us/windows/win32/api/d2d1/nf-d2d1-id2d1rendertarget-fillrectangle(constd2d1_rect_f__id2d1brush)
 func (obj *ID2D1RenderTarget) FillRectangle(rect RECT_F, brush *ID2D1Brush) {
 	syscall.Syscall(obj.vmt().FillRectangle, 3, uintptr(unsafe.Pointer(obj)), uintptr(unsafe.Pointer(&rect)), uintptr(unsafe.Pointer(brush)))
+}
+
+// DrawRectangle https://docs.microsoft.com/en-us/windows/win32/api/d2d1/nf-d2d1-id2d1rendertarget-drawrectangle(constd2d1_rect_f__id2d1brush_float_id2d1strokestyle)
+func (obj *ID2D1RenderTarget) DrawRectangle(rect RECT_F, brush *ID2D1Brush, strokeWidth float32) {
+	syscall.Syscall6(obj.vmt().DrawRectangle, 5, uintptr(unsafe.Pointer(obj)), uintptr(unsafe.Pointer(&rect)), uintptr(unsafe.Pointer(brush)), uintptr(math.Float32bits(strokeWidth)), uintptr(0), 0)
 }
 
 // CreateSolidColorBrush https://docs.microsoft.com/en-us/windows/win32/api/d2d1/nf-d2d1-id2d1rendertarget-createsolidcolorbrush(constd2d1_color_f__constd2d1_brush_properties__id2d1solidcolorbrush)

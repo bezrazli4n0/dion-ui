@@ -42,6 +42,7 @@ type Window interface {
 	DetachCallback(callbackType WindowCallbackType)
 
 	SetBackgroundColor(r, g, b, a byte)
+	SetCanvas(canvas *Canvas)
 
 	Close()
 	Hide()
@@ -56,6 +57,8 @@ type window struct {
 	pRT *d2d1.ID2D1HwndRenderTarget
 	backgroundColor d2d1.COLOR_F
 	isClosed bool
+
+	canvas *Canvas
 
 	callbacks map[WindowCallbackType]interface{}
 }
@@ -268,12 +271,25 @@ func (w *window) GetPos() (int, int) {
 func (w *window) render() {
 	w.pRT.BeginDraw()
 	w.pRT.Clear(w.backgroundColor)
+
+	// Draw canvas
+	if w.canvas != nil {
+		for _, obj := range w.canvas.Child {
+			obj.draw((*d2d1.ID2D1RenderTarget)(unsafe.Pointer(w.pRT)))
+		}
+	}
+
 	w.pRT.EndDraw()
 }
 
 // GetSize возвращает размер окна
 func (w *window) GetSize() (width, height int) {
 	return w.width, w.height
+}
+
+// SetCanvas устанавливает Canvas для свободного рисования в окне
+func (w *window) SetCanvas(canvas *Canvas) {
+	w.canvas = canvas
 }
 
 // getCorrectedBox возвращает размеры действительного прямоугольника окна

@@ -10,6 +10,19 @@ import (
 	"time"
 )
 
+type windowCanvas struct {
+	CanvasObjects []windowCanvasObject `xml:",any"`
+}
+
+type windowCanvasObject struct {
+	XMLName xml.Name
+	X float32 `xml:"x,attr"`
+	Y float32 `xml:"y,attr"`
+	Width float32 `xml:"width,attr"`
+	Height float32 `xml:"height,attr"`
+	Color string `xml:"color,attr"`
+}
+
 // windowMarkup содержит разметку окна
 type windowMarkup struct {
 	XMLName xml.Name `xml:"Window"`
@@ -29,6 +42,8 @@ type windowMarkup struct {
 
 	OnRMouseDownCallback string `xml:"onRMouseDown,attr"`
 	OnRMouseUpCallback string `xml:"onRMouseUp,attr"`
+
+	Canvas windowCanvas `xml:"Canvas"`
 }
 
 // WindowState внешний интерфейс взаимодействия с движком
@@ -188,6 +203,33 @@ func (w *windowStateImpl) LoadUIFromFile(filePath string) {
 	if callbackFunc, ok := w.loadedWindowFunctions[windowMarkupState.OnResize]; ok {
 		w.loadedWindow.AttachCallback(OnResize, callbackFunc)
 	}
+
+	// Canvas state
+	canvas := []CanvasObject{}
+
+	for _, obj := range windowMarkupState.Canvas.CanvasObjects {
+		r, g, b, a = parseColor(obj.Color)
+
+		switch obj.XMLName.Local {
+		case "FillRectangle":
+			fillRect := &fillRectangle{}
+			fillRect.SetPos(obj.X, obj.Y)
+			fillRect.SetSize(obj.Width, obj.Height)
+			fillRect.SetColorRGB(r, g, b, a)
+			canvas = append(canvas, fillRect)
+			break
+
+		case "DrawRectangle":
+			drawRect := &drawRectangle{}
+			drawRect.SetPos(obj.X, obj.Y)
+			drawRect.SetSize(obj.Width, obj.Height)
+			drawRect.SetColorRGB(r, g, b, a)
+			canvas = append(canvas, drawRect)
+			break
+		}
+	}
+
+	w.loadedWindow.SetCanvas(&Canvas{canvas})
 
 	w.loadedWindowMarkup = string(data)
 }

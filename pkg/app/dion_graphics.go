@@ -8,9 +8,13 @@ import (
 var pD2D1Factory *d2d1.ID2D1Factory
 var pDWriteFactory *dwrite.IDWriteFactory
 
+var dpiX, dpiY float32
+
 func initGraphics() {
 	d2d1.CreateFactory(d2d1.FACTORY_TYPE_SINGLE_THREADED, &pD2D1Factory)
 	dwrite.CreateFactory(dwrite.FACTORY_TYPE_ISOLATED, &pDWriteFactory)
+
+	dpiX, dpiY = pD2D1Factory.GetDesktopDpi()
 }
 
 func getD2D1Factory() *d2d1.ID2D1Factory {

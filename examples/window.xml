@@ -9,4 +9,9 @@
     onLMouseUp="leftCallback"
     onRMouseUp="rightCallback"
     onResize="resizeCallback">
+    <Canvas>
+        <FillRectangle x="0" y="0" width="400" height="30" color="30, 30, 30"/>
+        <FillRectangle x="0" y="30" width="400" height="170" color="40, 40, 90"/>
+        <DrawRectangle x="1" y="1" width="398" height="198" color="255, 0, 0"/>
+    </Canvas>
 </Window>

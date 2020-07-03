@@ -51,6 +51,12 @@ func (f *ID2D1Factory) CreateHwndRenderTarget(renderTargetProperties RENDER_TARG
 	return winapi.HRESULT(ret)
 }
 
+// GetDesktopDpi возвращает dpi монитора
+func (f *ID2D1Factory) GetDesktopDpi() (dpiX, dpiY float32) {
+	syscall.Syscall(f.vmt().GetDesktopDpi, 3, uintptr(unsafe.Pointer(f)), uintptr(unsafe.Pointer(&dpiX)), uintptr(unsafe.Pointer(&dpiY)))
+	return
+}
+
 // CreateFactory инициализирует Direct2D
 func CreateFactory(factoryType FACTORY_TYPE, ppD2D1Factory **ID2D1Factory) winapi.HRESULT {
 	ret, _, _ := pD2D1CreateFactory.Call(uintptr(factoryType), uintptr(unsafe.Pointer(&IID_ID2D1Factory)), uintptr(0), uintptr(unsafe.Pointer(ppD2D1Factory)))
