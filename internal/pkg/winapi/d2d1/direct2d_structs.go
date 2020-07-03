@@ -33,3 +33,14 @@ type HWND_RENDER_TARGET_PROPERTIES struct {
 	PixelSize SIZE_U
 	PresentOptions int32
 }
+
+type RECT_F struct {
+	Left float32
+	Top float32
+	Right float32
+	Bottom float32
+}
+
+type POINT_2F struct {
+	X, Y float32
+}

@@ -2,20 +2,19 @@ package d2d1
 
 import (
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi"
-	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/combase"
+	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/com"
 	"syscall"
 	"unsafe"
 )
 
 // ID2D1Factory содержит Direct2D ресурсы
 type ID2D1Factory struct {
-	vtbl *iD2D1FactoryVtbl
+	com.IUnknown
 }
 
-// iD2D1FactoryVtbl виртуальная таблица для ID2D1Factory
-type iD2D1FactoryVtbl struct {
-	combase.IUnknown
-
+// vtblID2D1Factory виртуальная таблица для ID2D1Factory
+type vtblID2D1Factory struct {
+	com.VtblIUnknown
 	ReloadSystemMetrics uintptr
 	GetDesktopDpi uintptr
 	CreateRectangleGeometry uintptr
@@ -32,34 +31,17 @@ type iD2D1FactoryVtbl struct {
 	CreateDCRenderTarget uintptr
 }
 
-func (obj *ID2D1Factory) AddRef() uint32 {
-	ret, _, _ := syscall.Syscall(
-		obj.vtbl.AddRef,
-		1,
-		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
-	)
-	return uint32(ret)
-}
-
-func (obj *ID2D1Factory) Release() uint32 {
-	ret, _, _ := syscall.Syscall(
-		obj.vtbl.Release,
-		1,
-		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
-	)
-	return uint32(ret)
+// vmt возвращает указатель на виртуальную таблицу
+func (f *ID2D1Factory) vmt() *vtblID2D1Factory {
+	return (*vtblID2D1Factory)(f.Vtbl)
 }
 
 // CreateHwndRenderTarget создаёт render target для обычного окна
-func (obj *ID2D1Factory) CreateHwndRenderTarget(renderTargetProperties RENDER_TARGET_PROPERTIES, hwndRenderTargetProperties HWND_RENDER_TARGET_PROPERTIES, ppID2D1HwndRenderTarget **ID2D1HwndRenderTarget) winapi.HRESULT {
+func (f *ID2D1Factory) CreateHwndRenderTarget(renderTargetProperties RENDER_TARGET_PROPERTIES, hwndRenderTargetProperties HWND_RENDER_TARGET_PROPERTIES, ppID2D1HwndRenderTarget **ID2D1HwndRenderTarget) winapi.HRESULT {
 	ret, _, _ := syscall.Syscall6(
-		obj.vtbl.CreateHwndRenderTarget,
+		f.vmt().CreateHwndRenderTarget,
 		4,
-		uintptr(unsafe.Pointer(obj)),
+		uintptr(unsafe.Pointer(f)),
 		uintptr(unsafe.Pointer(&renderTargetProperties)),
 		uintptr(unsafe.Pointer(&hwndRenderTargetProperties)),
 		uintptr(unsafe.Pointer(ppID2D1HwndRenderTarget)),

@@ -1,9 +1,9 @@
-package combase
+package com
 
 // Guid статический уникальный идентификатор, используется COM интерфейсами
 type Guid struct {
-	V1 int32
-	V2 int16
-	V3 int16
-	V4 [8]byte
+	Data1 uint32
+	Data2 uint16
+	Data3 uint16
+	Data4 [8]byte
 }
