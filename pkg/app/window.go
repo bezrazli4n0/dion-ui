@@ -7,6 +7,7 @@ import (
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/d2d1"
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/kernel32"
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/user32"
+	"math"
 	"syscall"
 	"unsafe"
 )
@@ -226,9 +227,14 @@ func (w *window) onMouseMove(x, y int) {
 
 // onResize вызывается при изменении размеров окна
 func (w *window) onResize(width, height int) {
+	w.width = width
+	w.height = height
+
 	if w.pRT != nil {
 		w.pRT.Resize(d2d1.SIZE_U{uint32(width), uint32(height)})
 	}
+
+	w.render()
 
 	if callback, ok := w.callbacks[OnResize]; ok {
 		callback.(func(width, height int))(width, height)
@@ -275,6 +281,19 @@ func (w *window) render() {
 	// Draw canvas
 	if w.canvas != nil {
 		for _, obj := range w.canvas.Child {
+
+			widthPercent, heightPercent := obj.getPercentSize()
+			width, height := obj.GetSize()
+
+			if widthPercent > 0 {
+				width = (float32(w.width) / 100.0) * widthPercent
+			}
+
+			if heightPercent > 0 {
+				height = (float32(w.height) / 100.0) * heightPercent
+			}
+
+			obj.SetSize(float32(math.Round(float64(width))), float32(math.Round(float64(height))))
 			obj.draw((*d2d1.ID2D1RenderTarget)(unsafe.Pointer(w.pRT)))
 		}
 	}

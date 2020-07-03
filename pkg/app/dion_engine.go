@@ -10,16 +10,18 @@ import (
 	"time"
 )
 
+// windowCanvas содержит canvas в окне
 type windowCanvas struct {
 	CanvasObjects []windowCanvasObject `xml:",any"`
 }
 
+// windowCanvasObject содержит canvas примитив
 type windowCanvasObject struct {
 	XMLName xml.Name
 	X float32 `xml:"x,attr"`
 	Y float32 `xml:"y,attr"`
-	Width float32 `xml:"width,attr"`
-	Height float32 `xml:"height,attr"`
+	Width string `xml:"width,attr"`
+	Height string `xml:"height,attr"`
 	Color string `xml:"color,attr"`
 }
 
@@ -112,6 +114,49 @@ func parseColor(color string) (r, g, b, a byte) {
 		a = 255
 	}
 	return
+}
+
+// setCanvasObjectSize парсит и устанавливает размер canvas примитива
+func setCanvasObjectSize(object CanvasObject, width, height string) {
+	widthPercent := 0.0
+	heightPercent :=  0.0
+
+	widthValue := 0.0
+	heightValue := 0.0
+
+	var err error
+
+	if strings.Contains(width, "%") {
+		width = strings.ReplaceAll(width, "%", "")
+		widthPercent, err = strconv.ParseFloat(width, 32)
+		if err != nil {
+			widthPercent = -1.0
+		}
+	} else {
+		widthValue, err = strconv.ParseFloat(width, 32)
+		if err != nil {
+			widthValue = -1.0
+		}
+	}
+
+	if strings.Contains(height, "%") {
+		height = strings.ReplaceAll(height, "%", "")
+		heightPercent, err = strconv.ParseFloat(height, 32)
+		if err != nil {
+			heightPercent = -1.0
+		}
+	} else {
+		heightValue, err = strconv.ParseFloat(height, 32)
+		if err != nil {
+			heightValue = -1.0
+		}
+	}
+
+	if widthPercent != -1.0 || heightPercent != -1.0 {
+		object.setPercentSize(float32(widthPercent), float32(heightPercent))
+	}
+
+	object.SetSize(float32(widthValue), float32(heightValue))
 }
 
 // LoadUIFromFile загружает интерфейс из файла
@@ -207,6 +252,7 @@ func (w *windowStateImpl) LoadUIFromFile(filePath string) {
 	// Canvas state
 	canvas := []CanvasObject{}
 
+	// TODO: add more canvas primitives
 	for _, obj := range windowMarkupState.Canvas.CanvasObjects {
 		r, g, b, a = parseColor(obj.Color)
 
@@ -214,7 +260,7 @@ func (w *windowStateImpl) LoadUIFromFile(filePath string) {
 		case "FillRectangle":
 			fillRect := &fillRectangle{}
 			fillRect.SetPos(obj.X, obj.Y)
-			fillRect.SetSize(obj.Width, obj.Height)
+			setCanvasObjectSize(fillRect, obj.Width, obj.Height)
 			fillRect.SetColorRGB(r, g, b, a)
 			canvas = append(canvas, fillRect)
 			break
@@ -222,7 +268,7 @@ func (w *windowStateImpl) LoadUIFromFile(filePath string) {
 		case "DrawRectangle":
 			drawRect := &drawRectangle{}
 			drawRect.SetPos(obj.X, obj.Y)
-			drawRect.SetSize(obj.Width, obj.Height)
+			setCanvasObjectSize(drawRect, obj.Width, obj.Height)
 			drawRect.SetColorRGB(r, g, b, a)
 			canvas = append(canvas, drawRect)
 			break
