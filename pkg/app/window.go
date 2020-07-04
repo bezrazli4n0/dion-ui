@@ -7,7 +7,6 @@ import (
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/d2d1"
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/kernel32"
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/user32"
-	"math"
 	"syscall"
 	"unsafe"
 )
@@ -42,6 +41,8 @@ type Window interface {
 	AttachCallback(callbackType WindowCallbackType, callback interface{})
 	DetachCallback(callbackType WindowCallbackType)
 
+	SetWidget(wdgt widget)
+
 	SetBackgroundColor(r, g, b, a byte)
 	SetCanvas(canvas *Canvas)
 
@@ -60,6 +61,7 @@ type window struct {
 	isClosed bool
 
 	canvas *Canvas
+	layoutWidget widget
 
 	callbacks map[WindowCallbackType]interface{}
 }
@@ -100,6 +102,11 @@ func (w *window) SetSize(width, height int) {
 // GetHandle возвращает handle окна
 func (w *window) GetHandle() user32.HWND {
 	return w.hWnd
+}
+
+// AddWidget добавляет виджет в окно
+func (w *window) SetWidget(wdgt widget) {
+	w.layoutWidget = wdgt
 }
 
 // GetTitle возвращает заголовок окна
@@ -281,21 +288,13 @@ func (w *window) render() {
 	// Draw canvas
 	if w.canvas != nil {
 		for _, obj := range w.canvas.Child {
-
-			widthPercent, heightPercent := obj.getPercentSize()
-			width, height := obj.GetSize()
-
-			if widthPercent > 0 {
-				width = (float32(w.width) / 100.0) * widthPercent
-			}
-
-			if heightPercent > 0 {
-				height = (float32(w.height) / 100.0) * heightPercent
-			}
-
-			obj.SetSize(float32(math.Round(float64(width))), float32(math.Round(float64(height))))
-			obj.draw((*d2d1.ID2D1RenderTarget)(unsafe.Pointer(w.pRT)))
+			obj.draw((*d2d1.ID2D1RenderTarget)(unsafe.Pointer(w.pRT)), float32(w.width), float32(w.height))
 		}
+	}
+
+	// Draw widgets
+	if w.layoutWidget != nil {
+		w.layoutWidget.draw((*d2d1.ID2D1RenderTarget)(unsafe.Pointer(w.pRT)), float32(w.width), float32(w.height))
 	}
 
 	w.pRT.EndDraw()

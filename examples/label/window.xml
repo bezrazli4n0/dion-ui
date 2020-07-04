@@ -1,0 +1,12 @@
+<Window
+    title="DionUI"
+    width="400"
+    height="200"
+    x="0"
+    y="0"
+    autoclose="true"
+    backgroundColor="37, 37, 37">
+    <Label x="10" y="10" width="400" height="100" fontName="Arial" fontSize="16.0" color="255, 255, 255">
+        Привет, мир! - こんにちは世界! - Hello, world!
+    </Label>
+</Window>

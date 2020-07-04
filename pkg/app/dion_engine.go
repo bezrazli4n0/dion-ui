@@ -23,6 +23,7 @@ type windowCanvasObject struct {
 	Width string `xml:"width,attr"`
 	Height string `xml:"height,attr"`
 	Color string `xml:"color,attr"`
+	StrokeWidth float32 `xml:"stroke,attr"`
 }
 
 // windowMarkup содержит разметку окна
@@ -46,6 +47,21 @@ type windowMarkup struct {
 	OnRMouseUpCallback string `xml:"onRMouseUp,attr"`
 
 	Canvas windowCanvas `xml:"Canvas"`
+	LayoutWidget layoutWidget `xml:",any"`
+}
+
+// layoutWidget содержит корневой виджет окна
+type layoutWidget struct {
+	XMLName xml.Name
+
+	X float32 `xml:"x,attr"`
+	Y float32 `xml:"y,attr"`
+	Width float32 `xml:"width,attr"`
+	Height float32 `xml:"height,attr"`
+	FontName string `xml:"fontName,attr"`
+	FontSize float32 `xml:"fontSize,attr"`
+	WidgetColor string `xml:"color,attr"`
+	InnerArg string `xml:",chardata"`
 }
 
 // WindowState внешний интерфейс взаимодействия с движком
@@ -255,27 +271,36 @@ func (w *windowStateImpl) LoadUIFromFile(filePath string) {
 	// TODO: add more canvas primitives
 	for _, obj := range windowMarkupState.Canvas.CanvasObjects {
 		r, g, b, a = parseColor(obj.Color)
+		color := Color{r, g, b, a}
 
 		switch obj.XMLName.Local {
 		case "FillRectangle":
-			fillRect := &fillRectangle{}
-			fillRect.SetPos(obj.X, obj.Y)
+			fillRect := NewRectangle(obj.X, obj.Y, 0.0, 0.0, true, Color{}, obj.StrokeWidth)
 			setCanvasObjectSize(fillRect, obj.Width, obj.Height)
-			fillRect.SetColorRGB(r, g, b, a)
+			fillRect.SetColorRGBA(color)
 			canvas = append(canvas, fillRect)
 			break
 
 		case "DrawRectangle":
-			drawRect := &drawRectangle{}
-			drawRect.SetPos(obj.X, obj.Y)
+			drawRect := NewRectangle(obj.X, obj.Y, 0.0, 0.0, false, Color{}, obj.StrokeWidth)
 			setCanvasObjectSize(drawRect, obj.Width, obj.Height)
-			drawRect.SetColorRGB(r, g, b, a)
+			drawRect.SetColorRGBA(color)
 			canvas = append(canvas, drawRect)
 			break
 		}
 	}
 
 	w.loadedWindow.SetCanvas(&Canvas{canvas})
+
+	// Load widget
+	// TODO: imporve layout system
+	switch windowMarkupState.LayoutWidget.XMLName.Local {
+	case "Label":
+		r, g, b, a := parseColor(windowMarkupState.LayoutWidget.WidgetColor)
+		lblColor := Color{r, g, b, a}
+		lbl := NewLabel(strings.TrimSpace(windowMarkupState.LayoutWidget.InnerArg), windowMarkupState.LayoutWidget.FontName, windowMarkupState.LayoutWidget.X, windowMarkupState.LayoutWidget.Y, windowMarkupState.LayoutWidget.Width, windowMarkupState.LayoutWidget.Height, windowMarkupState.LayoutWidget.FontSize, lblColor)
+		w.loadedWindow.SetWidget(lbl)
+	}
 
 	w.loadedWindowMarkup = string(data)
 }
