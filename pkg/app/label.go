@@ -6,6 +6,21 @@ import (
 	"unsafe"
 )
 
+type LabelHorizontalAlign int32
+type LabelVerticalAlign int32
+
+const (
+	LabelLeftH LabelHorizontalAlign = iota
+	LabelRightH
+	LabelCenterH
+)
+
+const (
+	LabelLeftV LabelVerticalAlign = iota
+	LabelRightV
+	LabelCenterV
+)
+
 type Label interface {
 	widget
 
@@ -13,9 +28,9 @@ type Label interface {
 	SetText(text string)
 	SetFontName(fontName string)
 	SetFontSize(fontSize float32)
+	SetTextAlignment(hAlign LabelHorizontalAlign, vAlign LabelVerticalAlign)
 }
 
-// TODO: add label rect layout
 func NewLabel(text, fontName string, x, y, width, height, fontSize float32, textColor Color) Label {
 	lbl := &labelImpl{}
 	lbl.visible = true
@@ -36,6 +51,8 @@ type labelImpl struct {
 	textColor d2d1.COLOR_F
 	text, fontName string
 	fontSize float32
+	hAlign LabelHorizontalAlign
+	vAlign LabelVerticalAlign
 }
 
 func (obj *labelImpl) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentHeight float32) {
@@ -44,6 +61,9 @@ func (obj *labelImpl) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentHeigh
 
 		pTextFormat := &dwrite.IDWriteTextFormat{}
 		getDWriteFactory().CreateTextFormat(obj.fontName, obj.fontSize, &pTextFormat)
+
+		pTextFormat.SetTextAlignment(dwrite.TEXT_ALIGNMENT(obj.hAlign))
+		pTextFormat.SetParagraphAlignment(dwrite.PARAGRAPH_ALIGNMENT(obj.vAlign))
 
 		pBrush := &d2d1.ID2D1SolidColorBrush{}
 		pRT.CreateSolidColorBrush(obj.textColor, &pBrush)
@@ -55,18 +75,28 @@ func (obj *labelImpl) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentHeigh
 	}
 }
 
+// SetFontName устанавливает шрифт
 func (obj *labelImpl) SetFontName(fontName string) {
 	obj.fontName = fontName
 }
 
+// SetFontSize устанавливает размер шрифта
 func (obj *labelImpl) SetFontSize(fontSize float32) {
 	obj.fontSize = fontSize
 }
 
+// SetText устанавливает текст
 func (obj *labelImpl) SetText(text string) {
 	obj.text = text
 }
 
+// SetTextAlignment выравнивает текст
+func (obj *labelImpl) SetTextAlignment(hAlign LabelHorizontalAlign, vAlign LabelVerticalAlign) {
+	obj.hAlign = hAlign
+	obj.vAlign = vAlign
+}
+
+// SetTextColor устанавливает цвет текста
 func (obj *labelImpl) SetTextColor(textColor Color) {
 	obj.textColor = rgbaColorToColorF(textColor)
 }

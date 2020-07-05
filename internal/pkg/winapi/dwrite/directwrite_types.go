@@ -3,6 +3,23 @@ package dwrite
 import "github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/com"
 
 type FACTORY_TYPE int32
+type PARAGRAPH_ALIGNMENT int32
+type TEXT_ALIGNMENT int32
+
+// https://docs.microsoft.com/en-us/windows/win32/api/dwrite/ne-dwrite-dwrite_paragraph_alignment
+const (
+	PARAGRAPH_ALIGNMENT_NEAR PARAGRAPH_ALIGNMENT = iota
+	PARAGRAPH_ALIGNMENT_FAR
+	PARAGRAPH_ALIGNMENT_CENTER
+)
+
+// https://docs.microsoft.com/en-us/windows/win32/api/dwrite/ne-dwrite-dwrite_text_alignment
+const (
+	TEXT_ALIGNMENT_LEADING TEXT_ALIGNMENT = iota
+	TEXT_ALIGNMENT_TRAILING
+	TEXT_ALIGNMENT_CENTER
+	TEXT_ALIGNMENT_JUSTIFIED
+)
 
 const (
 	FACTORY_TYPE_SHARED FACTORY_TYPE = iota
