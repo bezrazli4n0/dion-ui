@@ -288,13 +288,13 @@ func (w *window) render() {
 	// Draw canvas
 	if w.canvas != nil {
 		for _, obj := range w.canvas.Child {
-			obj.draw((*d2d1.ID2D1RenderTarget)(unsafe.Pointer(w.pRT)), float32(w.width), float32(w.height))
+			obj.draw((*d2d1.ID2D1RenderTarget)(unsafe.Pointer(w.pRT)), float32(w.width), float32(w.height), 0.0, 0.0)
 		}
 	}
 
 	// Draw widgets
 	if w.layoutWidget != nil {
-		w.layoutWidget.draw((*d2d1.ID2D1RenderTarget)(unsafe.Pointer(w.pRT)), float32(w.width), float32(w.height))
+		w.layoutWidget.draw((*d2d1.ID2D1RenderTarget)(unsafe.Pointer(w.pRT)), float32(w.width), float32(w.height), 0.0, 0.0)
 	}
 
 	w.pRT.EndDraw()

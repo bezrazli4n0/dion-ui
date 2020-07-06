@@ -16,7 +16,7 @@ type graphicsObject interface {
 	SetSize(width, height float32)
 	SetPos(x, y float32)
 
-	draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentHeight float32)
+	draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentHeight, parentX, parentY float32)
 }
 
 type graphicsObjectImpl struct {
@@ -38,6 +38,7 @@ func (obj *graphicsObjectImpl) calculateLayout(parentWidth, parentHeight float32
 	obj.SetSize(float32(math.Round(float64(width))), float32(math.Round(float64(height))))
 }
 
+// GetSize возвращает ширину и высоту объекта
 func (obj *graphicsObjectImpl) GetSize() (width, height float32) {
 	return obj.width, obj.height
 }
@@ -51,16 +52,19 @@ func (obj *graphicsObjectImpl) setPercentSize(widthPercent, heightPercent float3
 	obj.heightPercent = heightPercent
 }
 
+// SetSize устанавливает ширину и высоту объекта
 func (obj *graphicsObjectImpl) SetSize(width, height float32) {
 	obj.width = width
 	obj.height = height
 }
 
+// SetPos устанавливает позицию объекта
 func (obj *graphicsObjectImpl) SetPos(x, y float32) {
 	obj.x = x
 	obj.y = y
 }
 
+// GetPos возвращает позицию объекта
 func (obj *graphicsObjectImpl) GetPos() (x, y float32) {
 	return obj.x, obj.y
 }

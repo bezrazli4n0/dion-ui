@@ -1,5 +1,11 @@
 package dwrite
 
+import (
+	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi"
+	"syscall"
+	"unsafe"
+)
+
 type IDWriteTextLayout struct {
 	IDWriteTextFormat
 }
@@ -46,4 +52,15 @@ type vtblIDWriteTextLayout struct {
 	HitTestPoint uintptr
 	HitTestTextPosition uintptr
 	HitTestTextRange uintptr
+}
+
+// vmt возвращает указатель на виртуальную таблицу
+func (obj *IDWriteTextLayout) vmt() *vtblIDWriteTextLayout {
+	return (*vtblIDWriteTextLayout)(obj.Vtbl)
+}
+
+// GetMetrics https://docs.microsoft.com/en-us/windows/win32/api/dwrite/nf-dwrite-idwritetextlayout-getmetrics
+func (obj *IDWriteTextLayout) GetMetrics(textMetrics *TEXT_METRICS) winapi.HRESULT {
+	ret, _, _ := syscall.Syscall(obj.vmt().GetMetrics, 2, uintptr(unsafe.Pointer(obj)), uintptr(unsafe.Pointer(textMetrics)), 0)
+	return winapi.HRESULT(ret)
 }

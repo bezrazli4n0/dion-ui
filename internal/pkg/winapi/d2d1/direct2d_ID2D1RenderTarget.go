@@ -115,6 +115,11 @@ func (obj *ID2D1RenderTarget) DrawRectangle(rect RECT_F, brush *ID2D1Brush, stro
 	syscall.Syscall6(obj.vmt().DrawRectangle, 5, uintptr(unsafe.Pointer(obj)), uintptr(unsafe.Pointer(&rect)), uintptr(unsafe.Pointer(brush)), uintptr(math.Float32bits(strokeWidth)), uintptr(0), 0)
 }
 
+// DrawTextLayout https://docs.microsoft.com/en-us/windows/win32/api/d2d1/nf-d2d1-id2d1rendertarget-drawtextlayout
+func (obj *ID2D1RenderTarget) DrawTextLayout(origin POINT_2F, textLayout *dwrite.IDWriteTextLayout, defaultFillBrush *ID2D1Brush) {
+	syscall.Syscall6(obj.vmt().DrawTextLayout, 5, uintptr(unsafe.Pointer(obj)), uintptr(*(*uint64)(unsafe.Pointer(&origin))), uintptr(unsafe.Pointer(textLayout)), uintptr(unsafe.Pointer(defaultFillBrush)), uintptr(0), 0)
+}
+
 // CreateSolidColorBrush https://docs.microsoft.com/en-us/windows/win32/api/d2d1/nf-d2d1-id2d1rendertarget-createsolidcolorbrush(constd2d1_color_f__constd2d1_brush_properties__id2d1solidcolorbrush)
 func (obj *ID2D1RenderTarget) CreateSolidColorBrush(color COLOR_F, solidColorBrush **ID2D1SolidColorBrush) winapi.HRESULT {
 	ret, _, _ := syscall.Syscall6(obj.vmt().CreateSolidColorBrush, 4, uintptr(unsafe.Pointer(obj)), uintptr(unsafe.Pointer(&color)), uintptr(0), uintptr(unsafe.Pointer(solidColorBrush)), 0, 0)

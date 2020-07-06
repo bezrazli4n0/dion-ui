@@ -12,8 +12,9 @@ func main() {
 		dion.Exit()
 	})
 
-	lbl := dion.NewLabel("Привет", "Arial", 0, 0, 400, 200, 16, dion.Color{37, 37, 37, 255})
+	lbl := dion.NewLabel("Привет, мир! - こんにちは世界! - Hello, world!", "Arial", 0.0, 0.0, 400.0, 200.0, 16.0, dion.Color{0, 0, 0, 255})
 	lbl.SetTextAlignment(dion.LabelCenterH, dion.LabelCenterV)
+
 	wnd.SetWidget(lbl)
 
 	dion.Run()

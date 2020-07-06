@@ -42,5 +42,6 @@ type RECT_F struct {
 }
 
 type POINT_2F struct {
-	X, Y float32
+	X float32
+	Y float32
 }

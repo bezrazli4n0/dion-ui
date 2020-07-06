@@ -39,7 +39,7 @@ func (obj *drawRectangle) SetStrokeWidth(strokeWidth float32) {
 	obj.strokeWidth = strokeWidth
 }
 
-func (obj *fillRectangle) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentHeight float32) {
+func (obj *fillRectangle) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentHeight, parentX, parentY float32) {
 	obj.calculateLayout(parentWidth, parentHeight)
 
 	pBrush := &d2d1.ID2D1SolidColorBrush{}
@@ -48,7 +48,7 @@ func (obj *fillRectangle) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentH
 	pBrush.Release()
 }
 
-func (obj *drawRectangle) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentHeight float32) {
+func (obj *drawRectangle) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentHeight, parentX, parentY float32) {
 	obj.calculateLayout(parentWidth, parentHeight)
 
 	pBrush := &d2d1.ID2D1SolidColorBrush{}
