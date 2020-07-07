@@ -2,6 +2,7 @@ package dion
 
 import (
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/user32"
+	"time"
 )
 
 // Init инициализирует библиотеку
@@ -23,14 +24,19 @@ func Exit() {
 func Run() int {
 	msg := user32.MSG{}
 
+	go func() {
+		for {
+			for w, _ := range dionWindows {
+				w.invalidate()
+			}
+			time.Sleep(60 / time.Second)
+		}
+	}()
+
 	for appRunning {
-		if user32.PeekMessage(&msg, 0, 0, 0, user32.PM_REMOVE) {
+		if user32.GetMessage(&msg, 0, 0, 0) {
 			user32.TranslateMessage(&msg)
 			user32.DispatchMessage(&msg)
-		} else {
-			for w, _ := range dionWindows {
-				w.render()
-			}
 		}
 	}
 

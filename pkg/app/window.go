@@ -69,6 +69,11 @@ type window struct {
 // dionWindows содержит все окна
 var dionWindows map[*window]interface{}
 
+// invalidate перерисовывает окно
+func (w *window) invalidate() {
+	user32.InvalidateRect(w.hWnd, nil, false)
+}
+
 // SetTitle устанавливает заголовок окна
 func (w *window) SetTitle(title string) {
 	if user32.SetWindowText(w.hWnd, title) {
@@ -343,7 +348,7 @@ func NewWindow(title string, x, y, width, height int) (Window, error) {
 	width = int(winRect.Right - winRect.Left)
 	height = int(winRect.Bottom - winRect.Top)
 
-	hWnd := user32.CreateWindowEx(0, wnd.class, title, user32.WS_OVERLAPPEDWINDOW, int32(x), int32(y), int32(width), int32(height), 0, 0, wc.HInstance, winapi.LPVOID(unsafe.Pointer(wnd)))
+	hWnd := user32.CreateWindowEx(0, wnd.class, title, user32.WS_OVERLAPPEDWINDOW, int32(x), int32(y), int32(pixelToDipX(float32(width))), int32(pixelToDipY(float32(height))), 0, 0, wc.HInstance, winapi.LPVOID(unsafe.Pointer(wnd)))
 	if hWnd == 0 {
 		return nil, errors.New(fmt.Sprintf("dion: window handle is empty ~> %x", kernel32.GetLastError()))
 	}

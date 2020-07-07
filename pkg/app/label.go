@@ -69,22 +69,14 @@ type labelImpl struct {
 }
 
 func (obj *labelImpl) recreateInternalResources() {
-	if obj.pTextLayout != nil {
-		obj.pTextLayout.Release()
-		obj.pTextLayout = nil
-	}
+	obj.Dispose()
 
-	if obj.pTextFormat != nil {
-		obj.pTextFormat.Release()
-		obj.pTextFormat = nil
-	}
-
-	getDWriteFactory().CreateTextFormat(obj.fontName, pixelToDipY(obj.fontSize), &obj.pTextFormat)
+	getDWriteFactory().CreateTextFormat(obj.fontName, obj.fontSize, &obj.pTextFormat)
 
 	obj.pTextFormat.SetTextAlignment(dwrite.TEXT_ALIGNMENT(obj.hAlign))
 	obj.pTextFormat.SetParagraphAlignment(dwrite.PARAGRAPH_ALIGNMENT(obj.vAlign))
 
-	getDWriteFactory().CreateTextLayout(obj.text, obj.pTextFormat, pixelToDipX(obj.width), pixelToDipY(obj.height), &obj.pTextLayout)
+	getDWriteFactory().CreateTextLayout(obj.text, obj.pTextFormat, obj.width, obj.height, &obj.pTextLayout)
 
 	textMetrics := dwrite.TEXT_METRICS{}
 	obj.pTextLayout.GetMetrics(&textMetrics)
@@ -99,7 +91,7 @@ func (obj *labelImpl) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentHeigh
 		pBrush := &d2d1.ID2D1SolidColorBrush{}
 		pRT.CreateSolidColorBrush(obj.textColor, &pBrush)
 
-		pRT.DrawTextLayout(d2d1.POINT_2F{pixelToDipX(obj.x), pixelToDipY(obj.y)}, obj.pTextLayout, (*d2d1.ID2D1Brush)(unsafe.Pointer(pBrush)))
+		pRT.DrawTextLayout(d2d1.POINT_2F{obj.x, obj.y}, obj.pTextLayout, (*d2d1.ID2D1Brush)(unsafe.Pointer(pBrush)))
 
 		pBrush.Release()
 	}
