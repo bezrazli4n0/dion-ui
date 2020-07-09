@@ -31,6 +31,7 @@ var (
 	pInvalidateRect = user32DLL.NewProc("InvalidateRect")
 	pPeekMessage = user32DLL.NewProc("PeekMessageW")
 	pDestroyWindow = user32DLL.NewProc("DestroyWindow")
+	pMsgWaitForMultipleObjects = user32DLL.NewProc("MsgWaitForMultipleObjects")
 )
 
 // RegisterClassEx регистрирует окно в системе
@@ -249,6 +250,12 @@ func PeekMessage(lpMsg *MSG, hWnd HWND, wMsgFilterMin, wMsgFilterMax, wRemoveMsg
 	}
 
 	return true
+}
+
+// MsgWaitForMultipleObjects ждёт объект ядра
+func MsgWaitForMultipleObjects(nCount winapi.DWORD, pHandles *winapi.Handle, fWaitAll winapi.BOOL, dwMilliseconds, dwWakeMask winapi.DWORD) winapi.DWORD {
+	ret, _, _ := pMsgWaitForMultipleObjects.Call(uintptr(nCount), uintptr(unsafe.Pointer(pHandles)), uintptr(fWaitAll), uintptr(dwMilliseconds), uintptr(dwWakeMask))
+	return winapi.DWORD(ret)
 }
 
 // CreateWindowEx создает окно
