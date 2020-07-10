@@ -45,3 +45,33 @@ type POINT_2F struct {
 	X float32
 	Y float32
 }
+
+type ROUNDED_RECT struct {
+	Rect RECT_F
+	RadiusX float32
+	RadiusY float32
+}
+
+type MATRIX_3X2_F struct {
+	U struct {
+		S1 struct {
+			M11 float32
+			M12 float32
+			M21 float32
+			M22 float32
+			Dx float32
+			Dy float32
+		}
+
+		S2 struct {
+			F11 float32
+			F12 float32
+			F21 float32
+			F22 float32
+			F31 float32
+			F32 float32
+		}
+
+		M [3][2]float32
+	}
+}

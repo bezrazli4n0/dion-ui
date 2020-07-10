@@ -202,6 +202,17 @@ func (w *window) onLButtonDown(x, y int) {
 	if callback, ok := w.callbacks[OnLMouseButtonDown]; ok {
 		callback.(func(x, y int))(x, y)
 	}
+
+	if w.layoutWidget != nil {
+		if w.layoutWidget.GetVisible() {
+			w.layoutWidget.needHandleMouse(x, y, onLButtonDown)
+			if w.layoutWidget.isHandleMouse() {
+				w.layoutWidget.onLButtonDown(x, y)
+			}
+		}
+	}
+
+	w.render()
 }
 
 // onLButtonUp обрабатывает собитие отжатия левой кнопки мыши
@@ -209,6 +220,17 @@ func (w *window) onLButtonUp(x, y int) {
 	if callback, ok := w.callbacks[OnLMouseButtonUp]; ok {
 		callback.(func(x, y int))(x, y)
 	}
+
+	if w.layoutWidget != nil {
+		if w.layoutWidget.GetVisible() {
+			w.layoutWidget.needHandleMouse(x, y, onLButtonUp)
+			if w.layoutWidget.isHandleMouse() {
+				w.layoutWidget.onLButtonUp(x, y)
+			}
+		}
+	}
+
+	w.render()
 }
 
 // SetBackgroundColor устанавливает цвет окна
@@ -221,6 +243,17 @@ func (w *window) onRButtonDown(x, y int) {
 	if callback, ok := w.callbacks[OnRMouseButtonDown]; ok {
 		callback.(func(x, y int))(x, y)
 	}
+
+	if w.layoutWidget != nil {
+		if w.layoutWidget.GetVisible() {
+			w.layoutWidget.needHandleMouse(x, y, onRButtonDown)
+			if w.layoutWidget.isHandleMouse() {
+				w.layoutWidget.onRButtonDown(x, y)
+			}
+		}
+	}
+
+	w.render()
 }
 
 // onRButtonUp обрабатывает собитие отжатия правой кнопки мыши
@@ -228,6 +261,17 @@ func (w *window) onRButtonUp(x, y int) {
 	if callback, ok := w.callbacks[OnRMouseButtonUp]; ok {
 		callback.(func(x, y int))(x, y)
 	}
+
+	if w.layoutWidget != nil {
+		if w.layoutWidget.GetVisible() {
+			w.layoutWidget.needHandleMouse(x, y, onRButtonUp)
+			if w.layoutWidget.isHandleMouse() {
+				w.layoutWidget.onRButtonUp(x, y)
+			}
+		}
+	}
+
+	w.render()
 }
 
 // onMouseMove обрабатывает движение мыши
@@ -235,6 +279,32 @@ func (w *window) onMouseMove(x, y int) {
 	if callback, ok := w.callbacks[OnMouseMove]; ok {
 		callback.(func(x, y int))(x, y)
 	}
+
+	if w.layoutWidget != nil {
+		if w.layoutWidget.GetVisible() {
+			// On enter
+			if !w.layoutWidget.isMouseInside() {
+				w.layoutWidget.needHandleMouse(x, y, onMouseEnter)
+				if w.layoutWidget.isHandleMouse() {
+					w.layoutWidget.onMouseEnter(x, y)
+				}
+			// On leave
+			} else {
+				w.layoutWidget.needHandleMouse(x, y, onMouseLeave)
+				if w.layoutWidget.isHandleMouse() {
+					w.layoutWidget.onMouseLeave(x, y)
+				}
+			}
+
+			// On move
+			w.layoutWidget.needHandleMouse(x, y, onMouseMove)
+			if w.layoutWidget.isHandleMouse() {
+				w.layoutWidget.onMouseMove(x, y)
+			}
+		}
+	}
+
+	w.render()
 }
 
 // onResize вызывается при изменении размеров окна

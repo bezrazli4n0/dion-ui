@@ -57,6 +57,18 @@ func (f *ID2D1Factory) GetDesktopDpi() (dpiX, dpiY float32) {
 	return
 }
 
+// CreateRectangleGeometry создаёт прямоугольную геометрию
+func (f *ID2D1Factory) CreateRectangleGeometry(rectangle RECT_F, rectangleGeometry **ID2D1RectangleGeometry) winapi.HRESULT {
+	ret, _,  _ := syscall.Syscall(f.vmt().CreateRectangleGeometry, 3, uintptr(unsafe.Pointer(f)), uintptr(unsafe.Pointer(&rectangle)), uintptr(unsafe.Pointer(rectangleGeometry)))
+	return winapi.HRESULT(ret)
+}
+
+// CreateRoundedRectangleGeometry создаёт прямоугольную геометрию с закруглёнными краями
+func (f *ID2D1Factory) CreateRoundedRectangleGeometry(roundedRectangle ROUNDED_RECT, roundedRectangleGeometry **ID2D1RoundedRectangleGeometry) winapi.HRESULT {
+	ret, _, _ := syscall.Syscall(f.vmt().CreateRoundedRectangleGeometry, 3, uintptr(unsafe.Pointer(f)), uintptr(unsafe.Pointer(&roundedRectangle)), uintptr(unsafe.Pointer(roundedRectangleGeometry)))
+	return winapi.HRESULT(ret)
+}
+
 // CreateFactory инициализирует Direct2D
 func CreateFactory(factoryType FACTORY_TYPE, ppD2D1Factory **ID2D1Factory) winapi.HRESULT {
 	ret, _, _ := pD2D1CreateFactory.Call(uintptr(factoryType), uintptr(unsafe.Pointer(&IID_ID2D1Factory)), uintptr(0), uintptr(unsafe.Pointer(ppD2D1Factory)))

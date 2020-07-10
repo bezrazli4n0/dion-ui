@@ -110,6 +110,11 @@ func (obj *ID2D1RenderTarget) FillRectangle(rect RECT_F, brush *ID2D1Brush) {
 	syscall.Syscall(obj.vmt().FillRectangle, 3, uintptr(unsafe.Pointer(obj)), uintptr(unsafe.Pointer(&rect)), uintptr(unsafe.Pointer(brush)))
 }
 
+// FillGeometry https://docs.microsoft.com/en-us/windows/win32/api/d2d1/nf-d2d1-id2d1rendertarget-fillgeometry
+func (obj *ID2D1RenderTarget) FillGeometry(geometry *ID2D1Geometry, brush, opacityBrush *ID2D1Brush) {
+	syscall.Syscall6(obj.vmt().FillGeometry, 4, uintptr(unsafe.Pointer(obj)), uintptr(unsafe.Pointer(geometry)), uintptr(unsafe.Pointer(brush)), uintptr(unsafe.Pointer(opacityBrush)), 0, 0)
+}
+
 // DrawRectangle https://docs.microsoft.com/en-us/windows/win32/api/d2d1/nf-d2d1-id2d1rendertarget-drawrectangle(constd2d1_rect_f__id2d1brush_float_id2d1strokestyle)
 func (obj *ID2D1RenderTarget) DrawRectangle(rect RECT_F, brush *ID2D1Brush, strokeWidth float32) {
 	syscall.Syscall6(obj.vmt().DrawRectangle, 5, uintptr(unsafe.Pointer(obj)), uintptr(unsafe.Pointer(&rect)), uintptr(unsafe.Pointer(brush)), uintptr(math.Float32bits(strokeWidth)), uintptr(0), 0)

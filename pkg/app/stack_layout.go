@@ -2,7 +2,6 @@ package dion
 
 import (
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/d2d1"
-	"log"
 )
 
 type StackLayoutOrientation byte
@@ -18,12 +17,15 @@ func NewStackLayout(x, y float32, orientation StackLayoutOrientation) Layout {
 	layout.SetPos(x, y)
 	layout.SetVisible(true)
 	layout.orientation = orientation
+	layout.marginX = 2.0
+	layout.marginY = 2.0
 	return layout
 }
 
 type stackLayoutImpl struct {
 	layoutImpl
 	orientation StackLayoutOrientation
+	marginX, marginY float32
 }
 
 func (l *stackLayoutImpl) getMinBounds() (float32, float32) {
@@ -46,8 +48,8 @@ func (l *stackLayoutImpl) AddWidget(wdgt widget) {
 
 func (l *stackLayoutImpl) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentHeight, parentX, parentY float32) {
 	if l.widgets != nil {
-		deltaX := l.x + parentX
-		deltaY := l.y + parentY
+		deltaX := l.x + parentX + l.marginX
+		deltaY := l.y + parentY + l.marginY
 
 		switch l.orientation {
 		case StackV:
@@ -57,10 +59,11 @@ func (l *stackLayoutImpl) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentH
 					_, minHeight := obj.getMinBounds()
 
 					obj.SetSize(parentWidth, minHeight)
-					obj.SetPos(deltaX, deltaY)
+					obj.SetPos(deltaX - l.marginX, deltaY)
+
 					obj.draw(pRT, l.width, l.height, l.x, l.y)
 
-					deltaY += minHeight
+					deltaY += minHeight + l.marginY
 				}
 			}
 			break
@@ -71,12 +74,10 @@ func (l *stackLayoutImpl) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentH
 					minWidth, _ := obj.getMinBounds()
 
 					obj.SetSize(minWidth, parentHeight)
-					obj.SetPos(deltaX, deltaY)
+					obj.SetPos(deltaX, deltaY - l.marginY)
 					obj.draw(pRT, l.width, l.height, l.x, l.y)
 
-					log.Println(parentWidth, parentHeight)
-
-					deltaX += minWidth
+					deltaX += minWidth + l.marginX
 				}
 			}
 			break

@@ -18,6 +18,10 @@ func dipToPixelY(y float32) float32 {
 	return (y * 96.0) / dpiY
 }
 
+func rgbaToColorF(r, g, b, a byte) d2d1.COLOR_F {
+	return d2d1.COLOR_F{float32(r) / 255.0, float32(g) / 255.0, float32(b) / 255.0, float32(a) / 255.0}
+}
+
 func rgbaColorToColorF(color Color) d2d1.COLOR_F {
 	return d2d1.COLOR_F{float32(color.R) / 255.0, float32(color.G) / 255.0, float32(color.B) / 255.0, float32(color.A) / 255.0}
 }
