@@ -26,6 +26,13 @@ func Exit() {
 // updateAllWindows обновляет все окна движка
 func updateAllWindows() {
 	for w, _ := range dionWindows {
+		w.update()
+	}
+}
+
+// renderAllWindows перерисовывает все окна движка
+func renderAllWindows() {
+	for w, _ := range dionWindows {
 		w.render()
 	}
 }
@@ -42,6 +49,8 @@ func Run() int {
 			user32.TranslateMessage(&msg)
 			user32.DispatchMessage(&msg)
 		} else {
+			renderAllWindows()
+
 			nowTime := time.Now()
 			nextTime := nextUpdate
 
@@ -61,6 +70,7 @@ func Run() int {
 				}
 			}
 		}
+
 	}
 
 	for w, _ := range dionWindows {

@@ -2,13 +2,19 @@ package dion
 
 type Layout interface {
 	widget
-
-	AddWidget(wdgt widget)
 }
 
 type layoutImpl struct {
 	widgetImpl
 	widgets []widget
+}
+
+func (l *layoutImpl) update() {
+	for _, obj := range l.widgets {
+		if obj.GetVisible() {
+			obj.update()
+		}
+	}
 }
 
 func (l *layoutImpl) needHandleMouse(x, y int, eventType mouseEventType) {
@@ -27,6 +33,19 @@ func (l *layoutImpl) onLButtonUp(x, y int) {
 			obj.onLButtonUp(x, y)
 		}
 	}
+}
+
+func (l *layoutImpl) getMinBounds() (float32, float32) {
+	l.minWidth = 0
+	l.minHeight = 0
+	if l.widgets != nil {
+		for _, obj := range l.widgets {
+			minWidth, minHeight := obj.getMinBounds()
+			l.minWidth += minWidth
+			l.minHeight += minHeight
+		}
+	}
+	return l.minWidth, l.minHeight
 }
 
 func (l *layoutImpl) onLButtonDown(x, y int) {

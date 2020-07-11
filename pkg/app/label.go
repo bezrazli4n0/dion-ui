@@ -32,6 +32,7 @@ type Label interface {
 	SetTextAlignment(hAlign LabelHorizontalAlign, vAlign LabelVerticalAlign)
 }
 
+// NewLabel создает новый текст
 func NewLabel(text, fontName string, x, y, width, height, fontSize float32, textColor Color) Label {
 	lbl := &labelImpl{}
 
@@ -68,30 +69,34 @@ type labelImpl struct {
 	pTextLayout *dwrite.IDWriteTextLayout
 }
 
+// recreateInternalResource пересоздаёт внутренние ресурсы объекта
 func (obj *labelImpl) recreateInternalResources() {
 	obj.Dispose()
 
-	getDWriteFactory().CreateTextFormat(obj.fontName, obj.fontSize, &obj.pTextFormat)
+	if pixelToDipY(obj.width) >= 0 && pixelToDipY(obj.height) >= 0 {
+		getDWriteFactory().CreateTextFormat(obj.fontName, pixelToDipY(obj.fontSize), &obj.pTextFormat)
 
-	obj.pTextFormat.SetTextAlignment(dwrite.TEXT_ALIGNMENT(obj.hAlign))
-	obj.pTextFormat.SetParagraphAlignment(dwrite.PARAGRAPH_ALIGNMENT(obj.vAlign))
+		obj.pTextFormat.SetTextAlignment(dwrite.TEXT_ALIGNMENT(obj.hAlign))
+		obj.pTextFormat.SetParagraphAlignment(dwrite.PARAGRAPH_ALIGNMENT(obj.vAlign))
 
-	getDWriteFactory().CreateTextLayout(obj.text, obj.pTextFormat, obj.width, obj.height, &obj.pTextLayout)
+		getDWriteFactory().CreateTextLayout(obj.text, obj.pTextFormat, pixelToDipX(obj.width), pixelToDipY(obj.height), &obj.pTextLayout)
 
-	textMetrics := dwrite.TEXT_METRICS{}
-	obj.pTextLayout.GetMetrics(&textMetrics)
-	obj.minWidth = textMetrics.Width
-	obj.minHeight = textMetrics.Height
+		textMetrics := dwrite.TEXT_METRICS{}
+		obj.pTextLayout.GetMetrics(&textMetrics)
+		obj.minWidth = textMetrics.Width
+		obj.minHeight = textMetrics.Height
+	}
 }
 
+// draw рисует виджет
 func (obj *labelImpl) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentHeight, parentX, parentY float32) {
-	if obj.GetVisible() {
+	if obj.GetVisible() && pixelToDipX(obj.width) > 0 && pixelToDipY(obj.height) > 0 {
 		obj.calculateLayout(parentWidth, parentHeight)
 
 		pBrush := &d2d1.ID2D1SolidColorBrush{}
 		pRT.CreateSolidColorBrush(obj.textColor, &pBrush)
 
-		pRT.DrawTextLayout(d2d1.POINT_2F{obj.x, obj.y}, obj.pTextLayout, (*d2d1.ID2D1Brush)(unsafe.Pointer(pBrush)))
+		pRT.DrawTextLayout(d2d1.POINT_2F{pixelToDipX(obj.x), pixelToDipY(obj.y)}, obj.pTextLayout, (*d2d1.ID2D1Brush)(unsafe.Pointer(pBrush)))
 
 		pBrush.Release()
 	}

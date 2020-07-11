@@ -32,6 +32,8 @@ var (
 	pPeekMessage = user32DLL.NewProc("PeekMessageW")
 	pDestroyWindow = user32DLL.NewProc("DestroyWindow")
 	pMsgWaitForMultipleObjects = user32DLL.NewProc("MsgWaitForMultipleObjects")
+	pSetCapture = user32DLL.NewProc("SetCapture")
+	pReleaseCapture = user32DLL.NewProc("ReleaseCapture")
 )
 
 // RegisterClassEx регистрирует окно в системе
@@ -197,6 +199,24 @@ func BeginPaint(hWnd HWND, lpPaint *PAINTSTRUCT) HDC {
 // EndPaint сообщает окну о прекращении рисования
 func EndPaint(hWnd HWND, lpPaint *PAINTSTRUCT) {
 	pEndPaint.Call(uintptr(hWnd), uintptr(unsafe.Pointer(lpPaint)))
+}
+
+// SetCapture устанавливает захват мыши для определенного окна
+func SetCapture(hWnd HWND) HWND {
+	ret, _, _ := pSetCapture.Call(uintptr(hWnd))
+	return HWND(ret)
+}
+
+// ReleaseCapture высвобождает захваченый курсор мыши
+func ReleaseCapture() bool {
+	ret, _, _ := pReleaseCapture.Call()
+
+	res := winapi.BOOL(ret)
+	if res != 0 {
+		return true
+	}
+
+	return false
 }
 
 // AdjustWindowRect вычисляет необходимый размер окна

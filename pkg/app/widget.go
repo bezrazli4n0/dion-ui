@@ -23,6 +23,8 @@ type widget interface {
 	getMinBounds() (float32, float32)
 	Dispose()
 
+	update()
+
 	needHandleMouse(x, y int, eventType mouseEventType)
 	isHandleMouse() bool
 	isMouseInside() bool
@@ -75,6 +77,9 @@ func (obj *widgetImpl) onLButtonDown(x, y int) {
 
 func (obj *widgetImpl) onMouseEnter(x, y int) {
 
+}
+
+func (obj *widgetImpl) update() {
 }
 
 func (obj *widgetImpl) onMouseLeave(x, y int) {

@@ -58,19 +58,21 @@ func NewButton(text string, x, y, width, height, fontSize float32, onClick inter
 func (btn *buttonImpl) recreateInternalResource() {
 	btn.Dispose()
 
-	rect := d2d1.ROUNDED_RECT{
-		Rect: d2d1.RECT_F{btn.x, btn.y, btn.x + btn.width, btn.y + btn.height},
-		RadiusX: 7.0,
-		RadiusY: 7.0,
+	if pixelToDipX(btn.width) > 0 && pixelToDipY(btn.height) > 0 {
+		rect := d2d1.ROUNDED_RECT{
+			Rect:    d2d1.RECT_F{pixelToDipX(btn.x), pixelToDipY(btn.y), pixelToDipX(btn.x + btn.width), pixelToDipY(btn.y + btn.height)},
+			RadiusX: pixelToDipX(2.0),
+			RadiusY: pixelToDipY(2.0),
+		}
+
+		getD2D1Factory().CreateRoundedRectangleGeometry(rect, &btn.roundRect)
+
+		btn.lblText = NewLabel(btn.text, "Arial", btn.x, btn.y, btn.width, btn.height, btn.fontSize, btn.textColor)
+		btn.lblText.SetTextAlignment(LabelCenterH, LabelCenterV)
+		minWidth, minHeight := btn.lblText.getMinBounds()
+		btn.minWidth = minWidth + pixelToDipX(8.0)
+		btn.minHeight = minHeight + pixelToDipY(10.0)
 	}
-
-	getD2D1Factory().CreateRoundedRectangleGeometry(rect, &btn.roundRect)
-
-	btn.lblText = NewLabel(btn.text, "Arial", btn.x, btn.y, btn.width, btn.height, btn.fontSize, btn.textColor)
-	btn.lblText.SetTextAlignment(LabelCenterH, LabelCenterV)
-	minWidth, minHeight := btn.lblText.getMinBounds()
-	btn.minWidth = minWidth + 8.0
-	btn.minHeight = minHeight + 8.0
 }
 
 // Dispose высвобождает память
@@ -153,19 +155,21 @@ func (btn *buttonImpl) onMouseEnter(x, y int) {
 
 // draw рисует виджет
 func (btn *buttonImpl) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentHeight, parentX, parentY float32) {
-	pBrush := &d2d1.ID2D1SolidColorBrush{}
+	if pixelToDipX(btn.width) > 0 && pixelToDipY(btn.height) > 0 {
+		pBrush := &d2d1.ID2D1SolidColorBrush{}
 
-	if btn.isMouseDown {
-		pRT.CreateSolidColorBrush(btn.backgroundColorClick, &pBrush)
-	} else if btn.mouseInside {
-		pRT.CreateSolidColorBrush(btn.backgroundColorHover, &pBrush)
-	} else {
-		pRT.CreateSolidColorBrush(btn.backgroundColor, &pBrush)
+		if btn.isMouseDown {
+			pRT.CreateSolidColorBrush(btn.backgroundColorClick, &pBrush)
+		} else if btn.mouseInside {
+			pRT.CreateSolidColorBrush(btn.backgroundColorHover, &pBrush)
+		} else {
+			pRT.CreateSolidColorBrush(btn.backgroundColor, &pBrush)
+		}
+
+		pRT.FillGeometry((*d2d1.ID2D1Geometry)(unsafe.Pointer(btn.roundRect)), (*d2d1.ID2D1Brush)(unsafe.Pointer(pBrush)), nil)
+
+		btn.lblText.draw(pRT, btn.width, btn.height, btn.x, btn.y)
+
+		pBrush.Release()
 	}
-
-	pRT.FillGeometry((*d2d1.ID2D1Geometry)(unsafe.Pointer(btn.roundRect)), (*d2d1.ID2D1Brush)(unsafe.Pointer(pBrush)), nil)
-
-	btn.lblText.draw(pRT, btn.width, btn.height, btn.x, btn.y)
-
-	pBrush.Release()
 }

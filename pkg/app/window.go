@@ -83,8 +83,8 @@ func (w *window) SetTitle(title string) {
 
 // SetPos устанавливает позицию окна
 func (w *window) SetPos(x, y int) {
-	w.x = x
-	w.y = y
+	w.x = int(pixelToDipX(float32(x)))
+	w.y = int(pixelToDipX(float32(y)))
 
 	winRect := w.getCorrectedBox()
 	x += int(winRect.Left)
@@ -94,8 +94,8 @@ func (w *window) SetPos(x, y int) {
 
 // SetSize устанавливает размеры окна
 func (w *window) SetSize(width, height int) {
-	w.width = width
-	w.height = height
+	w.width = int(pixelToDipX(float32(width)))
+	w.height = int(pixelToDipX(float32(height)))
 
 	winRect := w.getCorrectedBox()
 	width = int(winRect.Right - winRect.Left)
@@ -352,7 +352,7 @@ func (w *window) Show() {
 
 // GetPos возвращает позицию окна
 func (w *window) GetPos() (int, int) {
-	return w.x, w.y
+	return int(dipToPixelX(float32(w.x))), int(dipToPixelX(float32(w.y)))
 }
 
 // render отрисовывает окно
@@ -375,9 +375,18 @@ func (w *window) render() {
 	w.pRT.EndDraw()
 }
 
+// update обновляет окно
+func (w *window) update() {
+	if w.layoutWidget != nil {
+		if w.layoutWidget.GetVisible() {
+			w.layoutWidget.update()
+		}
+	}
+}
+
 // GetSize возвращает размер окна
 func (w *window) GetSize() (width, height int) {
-	return w.width, w.height
+	return int(dipToPixelX(float32(w.width))), int(dipToPixelX(float32(w.height)))
 }
 
 // SetCanvas устанавливает Canvas для свободного рисования в окне
@@ -406,10 +415,10 @@ func NewWindow(title string, x, y, width, height int) (Window, error) {
 
 	wnd := &window{title: title, class: fmt.Sprintf("%s_dionUI", title)}
 	wnd.callbacks = make(map[WindowCallbackType]interface{})
-	wnd.x = x
-	wnd.y = y
-	wnd.width = width
-	wnd.height = height
+	wnd.x = int(pixelToDipX(float32(x)))
+	wnd.y = int(pixelToDipX(float32(y)))
+	wnd.width = int(pixelToDipX(float32(width)))
+	wnd.height = int(pixelToDipX(float32(height)))
 	wnd.backgroundColor = d2d1.COLOR_F{1.0, 1.0, 1.0, 1.0}
 	wnd.isClosed = false
 
@@ -418,7 +427,7 @@ func NewWindow(title string, x, y, width, height int) (Window, error) {
 	width = int(winRect.Right - winRect.Left)
 	height = int(winRect.Bottom - winRect.Top)
 
-	hWnd := user32.CreateWindowEx(0, wnd.class, title, user32.WS_OVERLAPPEDWINDOW, int32(x), int32(y), int32(pixelToDipX(float32(width))), int32(pixelToDipY(float32(height))), 0, 0, wc.HInstance, winapi.LPVOID(unsafe.Pointer(wnd)))
+	hWnd := user32.CreateWindowEx(0, wnd.class, title, user32.WS_OVERLAPPEDWINDOW, int32(x), int32(y), int32(width), int32(height), 0, 0, wc.HInstance, winapi.LPVOID(unsafe.Pointer(wnd)))
 	if hWnd == 0 {
 		return nil, errors.New(fmt.Sprintf("dion: window handle is empty ~> %x", kernel32.GetLastError()))
 	}
