@@ -37,6 +37,8 @@ const (
 	SW_SHOWDEFAULT = 10
 	SW_HIDE = 0
 
+	TME_LEAVE = 0x00000002
+
 	QS_ALLEVENTS = 0x04BF
 
 	WS_OVERLAPPED = 0x00000000
@@ -62,6 +64,7 @@ const (
 	WM_PAINT = 0x000F
 	WM_SIZE = 0x0005
 	WM_SIZING = 0x0214
+	WM_MOUSELEAVE = 0x02A3
 
 	COLOR_WINDOW = 5
 
@@ -144,4 +147,11 @@ type PAINTSTRUCT struct {
 	FRestore winapi.BOOL
 	FIncUpdate winapi.BOOL
 	RgbReserved [32]winapi.BYTE
+}
+
+type TRACKMOUSEEVENT struct {
+	CbSize winapi.DWORD
+	DwFlags winapi.DWORD
+	HwndTrack HWND
+	DwHoverTime winapi.DWORD
 }

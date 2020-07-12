@@ -35,7 +35,7 @@ type stackLayoutImpl struct {
 }
 
 func (l *stackLayoutImpl) AddWidget(w widget) {
-	l.widgets = append(l.widgets, w)
+	l.widgets = append(l.widgets, baseLayoutWidget{w: w})
 	l.width, l.height = l.getMinBounds()
 }
 
@@ -53,13 +53,13 @@ func (l *stackLayoutImpl) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentH
 		case StackV:
 			l.width = parentWidth
 			for _, obj := range l.widgets {
-				if obj.GetVisible() {
-					_, minHeight := obj.getMinBounds()
+				if obj.w.GetVisible() {
+					_, minHeight := obj.w.getMinBounds()
 
-					obj.SetSize(float32(math.Ceil(float64(parentWidth - l.paddingX * 2))), float32(math.Ceil(float64(minHeight))))
-					obj.SetPos(deltaX, deltaY)
+					obj.w.SetSize(float32(math.Ceil(float64(parentWidth - l.paddingX * 2))), float32(math.Ceil(float64(minHeight))))
+					obj.w.SetPos(deltaX, deltaY)
 
-					obj.draw(pRT, float32(math.Ceil(float64(l.width))), float32(math.Ceil(float64(l.height))), float32(math.Ceil(float64(l.x))), float32(math.Ceil(float64(l.y))))
+					obj.w.draw(pRT, float32(math.Ceil(float64(l.width))), float32(math.Ceil(float64(l.height))), float32(math.Ceil(float64(l.x))), float32(math.Ceil(float64(l.y))))
 
 					deltaY += float32(math.Ceil(float64(minHeight + l.paddingY)))
 				}
@@ -68,12 +68,12 @@ func (l *stackLayoutImpl) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentH
 		case StackH:
 			l.height = parentHeight
 			for _, obj := range l.widgets {
-				if obj.GetVisible() {
-					minWidth, _ := obj.getMinBounds()
+				if obj.w.GetVisible() {
+					minWidth, _ := obj.w.getMinBounds()
 
-					obj.SetSize(float32(math.Ceil(float64(minWidth))), float32(math.Ceil(float64(parentHeight - l.paddingY * 2))))
-					obj.SetPos(deltaX, deltaY)
-					obj.draw(pRT, float32(math.Ceil(float64(l.width))), float32(math.Ceil(float64(l.height))), float32(math.Ceil(float64(l.x))), float32(math.Ceil(float64(l.y))))
+					obj.w.SetSize(float32(math.Ceil(float64(minWidth))), float32(math.Ceil(float64(parentHeight - l.paddingY * 2))))
+					obj.w.SetPos(deltaX, deltaY)
+					obj.w.draw(pRT, float32(math.Ceil(float64(l.width))), float32(math.Ceil(float64(l.height))), float32(math.Ceil(float64(l.x))), float32(math.Ceil(float64(l.y))))
 
 					deltaX += float32(math.Ceil(float64(minWidth + l.paddingX)))
 				}

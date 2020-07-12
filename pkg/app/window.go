@@ -27,6 +27,7 @@ const (
 	OnResize
 )
 
+
 // Window определяет внешний интерфейс взаимодействия с окном
 type Window interface {
 	SetTitle(title string)
@@ -58,7 +59,7 @@ type window struct {
 	x, y, width, height int
 	pRT *d2d1.ID2D1HwndRenderTarget
 	backgroundColor d2d1.COLOR_F
-	isClosed bool
+	isClosed, isMouseInside bool
 
 	canvas *Canvas
 	layoutWidget widget
@@ -180,6 +181,10 @@ func (w *window) windowProc(hWnd user32.HWND, uMsg uint32, wParam winapi.WPARAM,
 		w.onMouseMove(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
 		return 0
 
+	case user32.WM_MOUSELEAVE:
+		w.onMouseLeave()
+		return 0
+
 	case user32.WM_SIZE:
 		w.onResize(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
 		return 0
@@ -276,6 +281,16 @@ func (w *window) onRButtonUp(x, y int) {
 
 // onMouseMove обрабатывает движение мыши
 func (w *window) onMouseMove(x, y int) {
+	if !w.isMouseInside {
+		tme := user32.TRACKMOUSEEVENT{}
+		tme.HwndTrack = w.hWnd
+		tme.CbSize = winapi.DWORD(unsafe.Sizeof(tme))
+		tme.DwFlags = user32.TME_LEAVE
+
+		user32.TrackMouseEvent(&tme)
+		w.isMouseInside = true
+	}
+
 	if callback, ok := w.callbacks[OnMouseMove]; ok {
 		callback.(func(x, y int))(x, y)
 	}
@@ -305,6 +320,20 @@ func (w *window) onMouseMove(x, y int) {
 	}
 
 	w.render()
+}
+
+// onMouseLeave обрабатывает выход мыши за пределы окна
+func (w *window) onMouseLeave() {
+	w.isMouseInside = false
+
+	if w.layoutWidget != nil {
+		if w.layoutWidget.GetVisible() {
+			w.layoutWidget.needHandleMouse(-1, -1, onMouseLeave)
+			if w.layoutWidget.isHandleMouse() {
+				w.layoutWidget.onMouseLeave(-1, -1)
+			}
+		}
+	}
 }
 
 // onResize вызывается при изменении размеров окна

@@ -5,11 +5,14 @@ import (
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/kernel32"
 	"github.com/bezrazli4n0/dion-ui/internal/pkg/winapi/user32"
 	"math"
+	"runtime"
 	"time"
 )
 
 // Init инициализирует библиотеку
 func Init() {
+	runtime.LockOSThread()
+
 	initGraphics()
 	appRunning = true
 	dionWindows = make(map[*window]interface{})

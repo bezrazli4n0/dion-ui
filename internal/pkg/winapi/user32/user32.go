@@ -34,7 +34,16 @@ var (
 	pMsgWaitForMultipleObjects = user32DLL.NewProc("MsgWaitForMultipleObjects")
 	pSetCapture = user32DLL.NewProc("SetCapture")
 	pReleaseCapture = user32DLL.NewProc("ReleaseCapture")
+	pTrackMouseEvent = user32DLL.NewProc("TrackMouseEvent")
+	pGetCursorPos = user32DLL.NewProc("GetCursorPos")
+	pWindowFromPoint = user32DLL.NewProc("WindowFromPoint")
 )
+
+// WindowFromPoint получает дескриптор окна по координатам
+func WindowFromPoint(Point POINT) HWND {
+	ret, _, _ := pWindowFromPoint.Call(uintptr(Point.X), uintptr(Point.Y))
+	return HWND(ret)
+}
 
 // RegisterClassEx регистрирует окно в системе
 func RegisterClassEx(wc *WNDCLASSEXW) bool {
@@ -109,6 +118,17 @@ func LoadCursor(lpCursorName uint32) HCURSOR {
 	return HCURSOR(ret)
 }
 
+// TrackMouseEvent отслеживает различные события мыши в окне
+func TrackMouseEvent(lpEventTrack *TRACKMOUSEEVENT) bool {
+	ret, _, _ := pTrackMouseEvent.Call(uintptr(unsafe.Pointer(lpEventTrack)))
+
+	if ret != 0 {
+		return true
+	}
+
+	return false
+}
+
 // PostQuitMessage указывает системе, что поток должен быть завершен
 func PostQuitMessage(nExitCode int) {
 	pPostQuitMessage.Call(uintptr(nExitCode))
@@ -161,6 +181,17 @@ func GetWindowRect(hWnd HWND, lpRect *RECT) bool {
 	}
 
 	return true
+}
+
+// GetCursorPos возвращает позицию курсора на экране
+func GetCursorPos(lpPoint *POINT) bool {
+	ret, _, _ := pGetCursorPos.Call(uintptr(unsafe.Pointer(lpPoint)))
+
+	if ret != 0 {
+		return true
+	}
+
+	return false
 }
 
 // SetWindowPos изменяет размеры и позицию окна

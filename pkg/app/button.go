@@ -146,6 +146,7 @@ func (btn *buttonImpl) onLButtonDown(x, y int) {
 // onMouseLeave срабатывает когда мышка покинула зону кнопки
 func (btn *buttonImpl) onMouseLeave(x, y int) {
 	btn.mouseInside = false
+	btn.isMouseDown = false
 }
 
 // onMouseEnter срабатывает когда мышка вошла в зону кнопки
