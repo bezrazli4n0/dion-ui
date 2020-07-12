@@ -26,6 +26,11 @@ func Exit() {
 	appRunning = false
 }
 
+// GetDPI возвращает dpi
+func GetDPI() (float32, float32) {
+	return dpiX, dpiY
+}
+
 // updateAllWindows обновляет все окна движка
 func updateAllWindows() {
 	for w, _ := range dionWindows {

@@ -7,7 +7,7 @@ import (
 func main() {
 	dion.Init()
 
-	wnd, _ := dion.NewWindow("Label example", 0, 0, 400, 200)
+	wnd, _ := dion.NewWindow("Label example", 0, 0, 400, 200, nil)
 	wnd.AttachCallback(dion.OnClose, func() {
 		dion.Exit()
 	})

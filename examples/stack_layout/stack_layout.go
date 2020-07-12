@@ -5,7 +5,7 @@ import dion "github.com/bezrazli4n0/dion-ui/pkg/app"
 func main() {
 	dion.Init()
 
-	wnd, _ := dion.NewWindow("Stack layout example", 0, 0, 400, 200)
+	wnd, _ := dion.NewWindow("Stack layout example", 0, 0, 400, 200, nil)
 	wnd.AttachCallback(dion.OnClose, func() {
 		dion.Exit()
 	})

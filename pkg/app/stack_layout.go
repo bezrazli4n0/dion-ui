@@ -45,7 +45,7 @@ func (l *stackLayoutImpl) SetPadding(x, y float32) {
 }
 
 func (l *stackLayoutImpl) draw(pRT *d2d1.ID2D1RenderTarget, parentWidth, parentHeight, parentX, parentY float32) {
-	if l.widgets != nil {
+	if l.widgets != nil && l.GetVisible() {
 		deltaX := float32(math.Ceil(float64(l.x + parentX + l.paddingX)))
 		deltaY := float32(math.Ceil(float64(l.y + parentY + l.paddingY)))
 

@@ -37,7 +37,15 @@ var (
 	pTrackMouseEvent = user32DLL.NewProc("TrackMouseEvent")
 	pGetCursorPos = user32DLL.NewProc("GetCursorPos")
 	pWindowFromPoint = user32DLL.NewProc("WindowFromPoint")
+	pEnableWindow = user32DLL.NewProc("EnableWindow")
+	pSetFocus = user32DLL.NewProc("SetFocus")
 )
+
+// SetFocus устанавливает фокус
+func SetFocus(hWnd HWND) HWND {
+	ret, _, _ := pSetFocus.Call(uintptr(hWnd))
+	return HWND(ret)
+}
 
 // WindowFromPoint получает дескриптор окна по координатам
 func WindowFromPoint(Point POINT) HWND {
@@ -154,6 +162,22 @@ func SetWindowText(hWnd HWND, lpString string) bool {
 func GetWindowLongPtr(hWnd HWND, nIndex int) winapi.LONG_PTR {
 	ret, _, _ := pGetWindowLongPtr.Call(uintptr(hWnd), uintptr(nIndex))
 	return winapi.LONG_PTR(ret)
+}
+
+// EnableWindow включает или выключает ввод для окна
+func EnableWindow(hWnd HWND, bEnable bool) bool {
+	_bEnable := winapi.BOOL(0)
+	if bEnable {
+		_bEnable = winapi.BOOL(1)
+	}
+
+	ret, _, _ := pEnableWindow.Call(uintptr(hWnd), uintptr(_bEnable))
+
+	if ret != 0 {
+		return true
+	}
+
+	return false
 }
 
 // SetWindowLongPtr устанавливает указанный атрибут окну

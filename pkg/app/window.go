@@ -27,7 +27,6 @@ const (
 	OnResize
 )
 
-
 // Window определяет внешний интерфейс взаимодействия с окном
 type Window interface {
 	SetTitle(title string)
@@ -38,6 +37,8 @@ type Window interface {
 	GetTitle() string
 	GetSize() (width, height int)
 	GetPos() (x, y int)
+
+	Enable(enable bool)
 
 	AttachCallback(callbackType WindowCallbackType, callback interface{})
 	DetachCallback(callbackType WindowCallbackType)
@@ -63,6 +64,8 @@ type window struct {
 
 	canvas *Canvas
 	layoutWidget widget
+
+	parentHwnd user32.HWND
 
 	callbacks map[WindowCallbackType]interface{}
 }
@@ -110,6 +113,11 @@ func (w *window) GetHandle() user32.HWND {
 	return w.hWnd
 }
 
+// Enable включает или отключает окно
+func (w *window) Enable(enable bool) {
+	user32.EnableWindow(w.hWnd, enable)
+}
+
 // AddWidget добавляет виджет в окно
 func (w *window) SetWidget(wdgt widget) {
 	w.layoutWidget = wdgt
@@ -155,48 +163,59 @@ func (w *window) windowProc(hWnd user32.HWND, uMsg uint32, wParam winapi.WPARAM,
 	switch uMsg {
 	case user32.WM_DISPLAYCHANGE:
 	case user32.WM_PAINT:
-		ps := &user32.PAINTSTRUCT{}
-		user32.BeginPaint(hWnd, ps)
-		w.render()
-		user32.EndPaint(hWnd, ps)
+		if !w.isClosed {
+			ps := &user32.PAINTSTRUCT{}
+			user32.BeginPaint(hWnd, ps)
+			w.render()
+			user32.EndPaint(hWnd, ps)
+		}
 		return 0
 
 	case user32.WM_LBUTTONUP:
-		w.onLButtonUp(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
+		if !w.isClosed {
+			w.onLButtonUp(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
+		}
 		return 0
 
+	case user32.WM_LBUTTONDBLCLK:
 	case user32.WM_LBUTTONDOWN:
-		w.onLButtonDown(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
+		if !w.isClosed {
+			w.onLButtonDown(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
+		}
 		return 0
 
 	case user32.WM_RBUTTONUP:
-		w.onRButtonUp(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
+		if !w.isClosed {
+			w.onRButtonUp(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
+		}
 		return 0
 
 	case user32.WM_RBUTTONDOWN:
-		w.onRButtonDown(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
+		if !w.isClosed {
+			w.onRButtonDown(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
+		}
 		return 0
 
 	case user32.WM_MOUSEMOVE:
-		w.onMouseMove(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
+		if !w.isClosed {
+			w.onMouseMove(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
+		}
 		return 0
 
 	case user32.WM_MOUSELEAVE:
-		w.onMouseLeave()
+		if !w.isClosed {
+			w.onMouseLeave()
+		}
 		return 0
 
 	case user32.WM_SIZE:
-		w.onResize(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
+		if !w.isClosed {
+			w.onResize(int(user32.Loword(int32(lParam))), int(user32.Hiword(int32(lParam))))
+		}
 		return 0
 
 	case user32.WM_DESTROY:
-		if callback, ok := w.callbacks[OnClose]; ok {
-			callback.(func())()
-		}
-
-		w.isClosed = true
-		delete(dionWindows, w)
-
+		w.onClose()
 		return 0
 	}
 	return user32.DefWindowProc(hWnd, uMsg, wParam, lParam)
@@ -352,6 +371,33 @@ func (w *window) onResize(width, height int) {
 	}
 }
 
+// onClose срабатывает когда окно закрывается
+func (w *window) onClose() {
+	if callback, ok := w.callbacks[OnClose]; ok {
+		callback.(func())()
+	}
+
+	w.isClosed = true
+
+	delete(dionWindows, w)
+
+	if w.parentHwnd != 0 {
+		user32.SetFocus(w.parentHwnd)
+	}
+
+	if w.layoutWidget != nil {
+		w.layoutWidget.Dispose()
+	}
+
+	if w.canvas != nil {
+		w.canvas = nil
+	}
+
+	if w.pRT != nil {
+		w.pRT.Release()
+	}
+}
+
 // DetachCallback удаляет функцию обратного вызова с события
 func (w *window) DetachCallback(callbackType WindowCallbackType) {
 	_, ok := w.callbacks[callbackType]
@@ -364,9 +410,6 @@ func (w *window) DetachCallback(callbackType WindowCallbackType) {
 func (w *window) Close() {
 	user32.DestroyWindow(w.hWnd)
 	user32.UnregisterClass(w.class, user32.HINSTANCE(kernel32.GetModuleHandle()))
-	if w.pRT != nil {
-		w.pRT.Release()
-	}
 }
 
 // Hide скрывает окно
@@ -386,29 +429,33 @@ func (w *window) GetPos() (int, int) {
 
 // render отрисовывает окно
 func (w *window) render() {
-	w.pRT.BeginDraw()
-	w.pRT.Clear(w.backgroundColor)
+	if !w.isClosed {
+		w.pRT.BeginDraw()
+		w.pRT.Clear(w.backgroundColor)
 
-	// Draw canvas
-	if w.canvas != nil {
-		for _, obj := range w.canvas.Child {
-			obj.draw((*d2d1.ID2D1RenderTarget)(unsafe.Pointer(w.pRT)), float32(w.width), float32(w.height), 0.0, 0.0)
+		// Draw canvas
+		if w.canvas != nil {
+			for _, obj := range w.canvas.Child {
+				obj.draw((*d2d1.ID2D1RenderTarget)(unsafe.Pointer(w.pRT)), float32(w.width), float32(w.height), 0.0, 0.0)
+			}
 		}
-	}
 
-	// Draw widgets
-	if w.layoutWidget != nil {
-		w.layoutWidget.draw((*d2d1.ID2D1RenderTarget)(unsafe.Pointer(w.pRT)), float32(w.width), float32(w.height), 0.0, 0.0)
-	}
+		// Draw widgets
+		if w.layoutWidget != nil {
+			w.layoutWidget.draw((*d2d1.ID2D1RenderTarget)(unsafe.Pointer(w.pRT)), float32(w.width), float32(w.height), 0.0, 0.0)
+		}
 
-	w.pRT.EndDraw()
+		w.pRT.EndDraw()
+	}
 }
 
 // update обновляет окно
 func (w *window) update() {
-	if w.layoutWidget != nil {
-		if w.layoutWidget.GetVisible() {
-			w.layoutWidget.update()
+	if !w.isClosed {
+		if w.layoutWidget != nil {
+			if w.layoutWidget.GetVisible() {
+				w.layoutWidget.update()
+			}
 		}
 	}
 }
@@ -431,7 +478,7 @@ func (w *window) getCorrectedBox() user32.RECT {
 }
 
 // NewWindow возвращает новый экземпляр окна
-func NewWindow(title string, x, y, width, height int) (Window, error) {
+func NewWindow(title string, x, y, width, height int, parent Window) (Window, error) {
 	wc := user32.WNDCLASSEXW{
 		LpszClassName: syscall.StringToUTF16Ptr(fmt.Sprintf("%s_dionUI", title)),
 		LpfnWndProc:   syscall.NewCallback(windowProc),
@@ -456,7 +503,11 @@ func NewWindow(title string, x, y, width, height int) (Window, error) {
 	width = int(winRect.Right - winRect.Left)
 	height = int(winRect.Bottom - winRect.Top)
 
-	hWnd := user32.CreateWindowEx(0, wnd.class, title, user32.WS_OVERLAPPEDWINDOW, int32(x), int32(y), int32(width), int32(height), 0, 0, wc.HInstance, winapi.LPVOID(unsafe.Pointer(wnd)))
+	if parent != nil {
+		wnd.parentHwnd = parent.GetHandle()
+	}
+
+	hWnd := user32.CreateWindowEx(0, wnd.class, title, user32.WS_OVERLAPPEDWINDOW, int32(x), int32(y), int32(width), int32(height), wnd.parentHwnd, 0, wc.HInstance, winapi.LPVOID(unsafe.Pointer(wnd)))
 	if hWnd == 0 {
 		return nil, errors.New(fmt.Sprintf("dion: window handle is empty ~> %x", kernel32.GetLastError()))
 	}

@@ -86,7 +86,7 @@ func (w *windowStateImpl) GetWindow() *Window {
 
 // NewWindowEngine иниициализирует движок для декларативного создания окна
 func NewWindowEngine(windowFunctions map[string]interface{}) (WindowState, error) {
-	wnd, err := NewWindow("DionUI", 0, 0, 640, 480)
+	wnd, err := NewWindow("DionUI", 0, 0, 640, 480, nil)
 
 	windowState := &windowStateImpl{
 		loadedWindow: wnd,

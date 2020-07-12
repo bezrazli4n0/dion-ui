@@ -8,7 +8,7 @@ import (
 func main() {
 	dion.Init()
 
-	wnd, _ := dion.NewWindow("Button example", 0, 0, 400, 200)
+	wnd, _ := dion.NewWindow("Button example", 0, 0, 400, 200, nil)
 	wnd.SetBackgroundColor(37, 37, 37, 255)
 	wnd.AttachCallback(dion.OnClose, func() {
 		dion.Exit()

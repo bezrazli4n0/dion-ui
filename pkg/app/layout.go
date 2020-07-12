@@ -22,6 +22,12 @@ func (l *layoutImpl) update() {
 	}
 }
 
+func (l *layoutImpl) Dispose() {
+	for _, obj := range l.widgets {
+		obj.w.Dispose()
+	}
+}
+
 func (l *layoutImpl) needHandleMouse(x, y int, eventType mouseEventType) {
 	l.handleMouse = true
 
